@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma";
 
 export default async function DataItemPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
-  const item = await prisma.dataItem.findUnique({
-    where: { id },
+  const item = await prisma.dataItem.findFirst({
+    where: { OR: [{ id }, { key: id }] },
     include: {
       mappings: {
         include: { control: { include: { framework: true } } },

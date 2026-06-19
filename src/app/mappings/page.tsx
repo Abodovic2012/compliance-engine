@@ -63,7 +63,7 @@ export default async function MappingsPage() {
             {mappings.slice(0, 50).map((m) => (
               <tr key={m.id} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="px-4 py-3">
-                  <Link href={`/data-items/${m.dataItem.key}`} className="text-blue-600 hover:underline">{m.dataItem.label}</Link>
+                  <Link href={`/data-items/${m.dataItem.id}`} className="text-blue-600 hover:underline">{m.dataItem.label}</Link>
                 </td>
                 <td className="px-4 py-3 text-xs">{m.control.framework.name}</td>
                 <td className="px-4 py-3 font-mono text-xs">{m.control.ref}</td>

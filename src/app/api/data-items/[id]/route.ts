@@ -5,8 +5,8 @@ import { logger } from "@/lib/logger";
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const item = await prisma.dataItem.findUnique({
-      where: { id },
+    const item = await prisma.dataItem.findFirst({
+      where: { OR: [{ id }, { key: id }] },
       include: {
         mappings: {
           include: {
