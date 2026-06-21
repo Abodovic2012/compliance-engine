@@ -53,6 +53,7 @@ export default async function DataItemPage(props: { params: Promise<{ id: string
             <div className="flex gap-2 mt-3 text-xs text-slate-400">
               <span>Region: {m.region}</span>
               {m.supplyChainFlag && <span className="text-orange-500">Supply Chain</span>}
+              <span>KEV: {m.kevOverride}</span>
               <span>Test: {m.testId}</span>
             </div>
           </div>

@@ -52,22 +52,30 @@ export default async function MappingsPage() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
+              <th className="text-left px-4 py-3 font-medium text-slate-500">Category</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500">Data Item</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500">Framework</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500">Control</th>
+              <th className="text-left px-4 py-3 font-medium text-slate-500">Theme</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500">Severity</th>
+              <th className="text-center px-4 py-3 font-medium text-slate-500">SC</th>
+              <th className="text-left px-4 py-3 font-medium text-slate-500">KEV</th>
               <th className="text-left px-4 py-3 font-medium text-slate-500">Test ID</th>
             </tr>
           </thead>
           <tbody>
             {mappings.slice(0, 50).map((m) => (
               <tr key={m.id} className="border-b border-slate-100 hover:bg-slate-50">
+                <td className="px-4 py-3 text-xs text-slate-500">{m.dataItem.category}</td>
                 <td className="px-4 py-3">
                   <Link href={`/data-items/${m.dataItem.id}`} className="text-blue-600 hover:underline">{m.dataItem.label}</Link>
                 </td>
                 <td className="px-4 py-3 text-xs">{m.control.framework.name}</td>
                 <td className="px-4 py-3 font-mono text-xs">{m.control.ref}</td>
+                <td className="px-4 py-3 text-xs text-slate-500">{m.control.theme}</td>
                 <td className="px-4 py-3"><span className={`badge badge-${m.severity.toLowerCase()}`}>{m.severity}</span></td>
+                <td className="px-4 py-3 text-center">{m.supplyChainFlag ? <span className="text-orange-500 font-medium text-xs">Y</span> : <span className="text-slate-300">-</span>}</td>
+                <td className="px-4 py-3 text-xs">{m.kevOverride !== "N/A" ? m.kevOverride : <span className="text-slate-300">-</span>}</td>
                 <td className="px-4 py-3"><Link href={`/mappings/${m.id}`} className="font-mono text-xs text-blue-600 hover:underline">{m.testId}</Link></td>
               </tr>
             ))}
