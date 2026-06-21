@@ -46,7 +46,7 @@ export default async function DataItemPage(props: { params: Promise<{ id: string
               <div key={m.id} className="bg-white rounded-xl border border-slate-200 p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <span className="font-mono text-sm font-medium">{m.control.ref}</span>
+                    <Link href={`/controls/${m.control.id}`} className="font-mono text-sm font-medium text-blue-600 hover:underline">{m.control.ref}</Link>
                     {m.control.theme && <span className="text-slate-500 text-sm ml-2">({m.control.theme})</span>}
                     <Link href={`/mappings/${m.id}`} className="text-xs text-blue-600 hover:underline ml-2">#{m.testId}</Link>
                   </div>

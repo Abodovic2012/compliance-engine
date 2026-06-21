@@ -39,7 +39,7 @@ export default async function MappingDetailPage(props: { params: Promise<{ id: s
             <span className="text-slate-400">Framework:</span> {mapping.control.framework.name}
           </div>
           <div>
-            <span className="text-slate-400">Control Ref:</span> <span className="font-mono">{mapping.control.ref}</span>
+            <span className="text-slate-400">Control Ref:</span> <Link href={`/controls/${mapping.control.id}`} className="font-mono text-blue-600 hover:underline">{mapping.control.ref}</Link>
           </div>
           <div>
             <span className="text-slate-400">Control Theme:</span> {mapping.control.theme}
@@ -95,7 +95,7 @@ export default async function MappingDetailPage(props: { params: Promise<{ id: s
                   <div>
                     <span className="font-medium text-sm">{m.control.framework.name}</span>
                     <span className="text-slate-400 mx-2">/</span>
-                    <span className="font-mono text-sm">{m.control.ref}</span>
+                    <Link href={`/controls/${m.control.id}`} className="font-mono text-sm text-blue-600 hover:underline">{m.control.ref}</Link>
                     <span className="text-slate-500 text-sm ml-2">{m.control.theme}</span>
                   </div>
                   <span className={`badge badge-${m.severity.toLowerCase()}`}>{m.severity}</span>

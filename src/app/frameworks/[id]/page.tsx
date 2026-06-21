@@ -36,7 +36,7 @@ export default async function FrameworkPage(props: { params: Promise<{ id: strin
           <tbody>
             {controls.map((c) => (
               <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-3 font-mono text-xs font-medium">{c.ref}</td>
+                <td className="px-4 py-3"><Link href={`/controls/${c.id}`} className="font-mono text-xs font-medium text-blue-600 hover:underline">{c.ref}</Link></td>
                 <td className="px-4 py-3">{c.theme}</td>
                 <td className="px-4 py-3 text-slate-500">{c.description}</td>
                 <td className="px-4 py-3 text-center">{c._count.mappings}</td>

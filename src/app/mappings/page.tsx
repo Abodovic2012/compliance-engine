@@ -71,7 +71,7 @@ export default async function MappingsPage() {
                   <Link href={`/data-items/${m.dataItem.id}`} className="text-blue-600 hover:underline">{m.dataItem.label}</Link>
                 </td>
                 <td className="px-4 py-3 text-xs">{m.control.framework.name}</td>
-                <td className="px-4 py-3 font-mono text-xs">{m.control.ref}</td>
+                <td className="px-4 py-3"><Link href={`/controls/${m.control.id}`} className="font-mono text-xs text-blue-600 hover:underline">{m.control.ref}</Link></td>
                 <td className="px-4 py-3 text-xs text-slate-500">{m.control.theme}</td>
                 <td className="px-4 py-3"><span className={`badge badge-${m.severity.toLowerCase()}`}>{m.severity}</span></td>
                 <td className="px-4 py-3 text-center">{m.supplyChainFlag ? <span className="text-orange-500 font-medium text-xs">Y</span> : <span className="text-slate-300">-</span>}</td>
