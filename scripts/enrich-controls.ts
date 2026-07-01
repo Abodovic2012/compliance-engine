@@ -54,6 +54,12 @@ function genControlArticle(fw: string, ref: string, theme: string, orig: string)
     case "cis": return genCIS(fw, ref, theme, orig);
     case "uae": return genUAE(fw, ref, theme, orig);
     case "iso42001": return genISO42(fw, ref, theme, orig);
+    case "imo": return genIMO(fw, ref, theme, orig);
+    case "iacs": {
+      // Both E26 and E27 use "iacs" - distinguish by framework name
+      if (fw.includes("E26")) return genE26(fw, ref, theme, orig);
+      return genE27(fw, ref, theme, orig);
+    }
     default: return `${orig}. Implementation should align with ${fw} requirements, with documented procedures, assigned responsibilities, and periodic review cycles. Evidence includes policies, procedures, training records, and audit results demonstrating operating effectiveness.`;
   }
 }
@@ -119,7 +125,21 @@ function fwNorm(fw: string): string {
   if (fw.includes("HIPAA")) return "hipaa";
   if (fw.includes("CIS Controls")) return "cis";
   if (fw.includes("UAE IA")) return "uae";
+  if (fw.includes("IMO Resolution")) return "imo";
+  if (fw.includes("IACS")) return "iacs";
   return "generic";
+}
+
+function genIMO(fw: string, ref: string, theme: string, orig: string): string {
+  return `${fw} control ${ref} (${theme}) requires effective ${orig.toLowerCase()}. IMO Resolution MSC.428(98) encourages flag state administrations to ensure that cyber risks are appropriately addressed in safety management systems (SMS) as defined by the ISM Code. This control follows the Guidelines on Maritime Cyber Risk Management (MSC-FAL.1/Circ.3) which outline functional elements including identify, protect, detect, respond, and recover. Implementation should be integrated with the company's existing SMS processes, documented safety procedures, and Designated Person Ashore (DPA) responsibilities. The resolution applies to all ship types covered by the ISM Code and requires consideration of cyber risks from both onboard systems and external connections including shore-side interfaces. Evidence includes documented cyber risk assessment reports, SMS integration records reflecting cyber risk management, training and drill records for crew cyber awareness, access control configuration documentation, network architecture diagrams showing segmentation, anomaly detection system logs, incident response procedure drills, backup and restoration test reports, third-party risk assessment records for suppliers and service providers, and management review meeting minutes demonstrating continuous improvement. Flag state and class society audits will verify integration of cyber risk management within the SMS during ISM audits and annual safety management reviews.`;
+}
+
+function genE26(fw: string, ref: string, theme: string, orig: string): string {
+  return `IACS UR E26 control ${ref} (${theme}) requires ${orig.toLowerCase()}. IACS Unified Requirement E26 establishes cyber security requirements for on-board systems on new ships, applying to computer-based systems that are essential for ship safety, security, and operational effectiveness. Implementation covers the entire ship lifecycle from design and build through operational service, with documented evidence required for class society verification. The requirements address the security of OT, IT, and IoT systems integrated into the ship's network infrastructure. Evidence includes the cyber security asset inventory listing all computer-based systems with make, model, firmware, and network connectivity, network architecture diagrams with OT/IT segmentation, role-based access control configuration with user groups and privilege matrices, vulnerability scanning reports and patch management records, anti-malware deployment logs showing coverage across all onboard systems, security monitoring and anomaly detection system configuration with alert thresholds, incident response plan documentation and exercise records showing participation by bridge and engine room teams, backup verification logs demonstrating successful restoration of critical system configurations, remote access gateway configuration with encryption and authentication settings, secure decommissioning procedures including data sanitization certificates, supplier security assessment records for equipment vendors, and comprehensive cyber documentation maintained for class survey and port state control inspection readiness.`;
+}
+
+function genE27(fw: string, ref: string, theme: string, orig: string): string {
+  return `IACS UR E27 control ${ref} (${theme}) requires ${orig.toLowerCase()}. IACS Unified Requirement E27 specifies cyber resilience requirements for on-board systems and equipment installed on new ships, focusing on the ability of individual systems and components to prevent, withstand, and recover from cyber incidents. This requirement is closely linked to UR E26 and applies at the equipment level to ensure that critical systems are designed and configured with built-in security capabilities. Equipment manufacturers must demonstrate compliance through design documentation, testing, and security configuration evidence. Evidence includes secure development lifecycle documentation showing security requirements traceability from design through testing, user identification and authentication configuration with unique credentials for all human and system accounts, system hardening checklists confirming disabling of unused ports, services, and default credentials, access control enforcement records demonstrating least-privilege implementation for all user roles, data confidentiality evidence including encryption configuration for data in transit and at rest, audit log configuration with tamper protection mechanisms (write-once or cryptographically signed logs), remote access session logs showing encrypted and authenticated connections with session recording, patch management records with application timelines and vulnerability remediation evidence, secure communication protocol configuration showing use of TLS or equivalent for all network communications, and product security documentation delivered with each equipment item including security configuration guides, known vulnerabilities, and end-of-life support commitments. Equipment type approval by IACS member classification societies verifies conformance with UR E27 requirements at the product level.`;
 }
 
 writeFileSync("prisma/seed.ts", enrichedLines.join("\n"));

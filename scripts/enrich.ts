@@ -143,6 +143,9 @@ function fwNorm(fw: string): string {
   if (fw.includes("HIPAA")) return "hipaa";
   if (fw.includes("CIS Controls")) return "cis";
   if (fw.includes("UAE IA")) return "uae";
+  if (fw.includes("IMO Resolution")) return "imo";
+  if (fw.includes("IACS E26")) return "e26";
+  if (fw.includes("IACS E27")) return "e27";
   return "generic";
 }
 
@@ -160,6 +163,9 @@ function fwShort(fw: string): string {
     "HIPAA Security Rule": "HIPAA Security Rule",
     "CIS Controls v8": "CIS Controls v8",
     "UAE IA Standards": "UAE IA Standards",
+    "IMO Resolution MSC.428(98)": "IMO MSC.428(98)",
+    "IACS E26": "IACS UR E26",
+    "IACS E27": "IACS UR E27",
   };
   return map[fw] || fw;
 }
