@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --sidebar: #1e293b;
+  --sidebar-text: #cbd5e1;
+  --card: #ffffff;
+  --border: #e2e8f0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+.severity-critical { color: #dc2626; }
+.severity-high { color: #ea580c; }
+.severity-medium { color: #ca8a04; }
+.severity-low { color: #16a34a; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.badge-critical { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.badge-high { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+.badge-medium { background: #fefce8; color: #ca8a04; border: 1px solid #fef08a; }
+.badge-low { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }

@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model DataItem {
+  id          String    @id @default(cuid())
+  key         String    @unique
+  label       String
+  description String
+  category    String
+  domain      String
+  defaultValue String?
+  mappings    Mapping[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Framework {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  version  String
+  region   String
+  controls Control[]
+}
+
+model Control {
+  id          String    @id @default(cuid())
+  frameworkId String
+  framework   Framework @relation(fields: [frameworkId], references: [id])
+  ref         String
+  theme       String
+  description String
+  mappings    Mapping[]
+}
+
+model Mapping {
+  id               String    @id @default(cuid())
+  dataItemId       String
+  dataItem         DataItem  @relation(fields: [dataItemId], references: [id])
+  controlId        String
+  control          Control   @relation(fields: [controlId], references: [id])
+  justification    String
+  severity         String
+  slaThreshold     String
+  findingType      String
+  remediation      String
+  evidenceRequired String
+  region           String
+  supplyChainFlag  Boolean   @default(false)
+  kevOverride      String    @default("N/A")
+  testId           String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([dataItemId, controlId])
+}
