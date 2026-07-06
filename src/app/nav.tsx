@@ -10,7 +10,7 @@ const links = [
   { href: "/frameworks", label: "Frameworks", icon: "book" },
   { href: "/mappings", label: "Mappings", icon: "link" },
   { href: "/evaluate", label: "Evaluate", icon: "check" },
-  { href: "/policies", label: "Policies", icon: "document" },
+  { href: "/generate", label: "Generate", icon: "document" },
   { href: "/reports", label: "Reports", icon: "chart" },
 ];
 
