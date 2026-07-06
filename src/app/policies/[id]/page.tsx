@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { PrintButton } from "@/components/print-button";
 
 export default async function PolicyDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
@@ -27,9 +28,7 @@ export default async function PolicyDetailPage(props: { params: Promise<{ id: st
             <h1 className="text-2xl font-bold">{framework.name}</h1>
             <p className="text-sm text-slate-500 mt-1">Version {framework.version} &middot; Region {framework.region}</p>
           </div>
-          <button onClick={() => window.print()} className="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm hover:bg-slate-700 print:hidden">
-            Print / Save PDF
-          </button>
+          <PrintButton />
         </div>
       </div>
 
