@@ -1,6 +1,6 @@
 # Compliance Mapping Engine
 
-A production-ready multi-framework compliance mapping and evaluation platform. Map 134 security data items across 12 frameworks (610 controls, 922 cross-mappings) and instantly evaluate compliance posture with automated gap analysis.
+A production-ready multi-framework compliance mapping and evaluation platform. Map 134 security data items across 15 frameworks (667 controls, 922 cross-mappings) and instantly evaluate compliance posture with automated gap analysis.
 
 Built by **MSc. Eng. Abdul Rahman Hawa**.
 
@@ -8,7 +8,7 @@ Built by **MSc. Eng. Abdul Rahman Hawa**.
 
 ## Features
 
-- **12 Compliance Frameworks** — ISO 27001, NIST SP 800-53, CIS Controls, PCI DSS, GDPR, SOC 2, HIPAA, DORA, NIS2, NIST CSF, UAE IA, ISO 42001
+- **15 Compliance Frameworks** — ISO 27001, NIST SP 800-53, CIS Controls, PCI DSS, GDPR, SOC 2, HIPAA, DORA, NIS2, NIST CSF, UAE IA, ISO 42001, IMO MSC.428(98), IACS UR E26, IACS UR E27
 - **134 Data Items** across 18 security domains (Identity, Network, Endpoint, Data Protection, Cloud, AI Security, OT/IoT, and more)
 - **922 Pre-built Mappings** — each data item linked to relevant controls with severity, SLA thresholds, remediation guidance, and evidence requirements
 - **Evaluate** — select a data item and value; API computes compliance status per framework
@@ -55,7 +55,7 @@ Open [http://localhost:3000](http://localhost:3000) to use the application.
 |---|---|
 | **Dashboard** | Overview stats: frameworks, controls, data items, mappings |
 | **Data Items** | Browse 134 items across 18 domains; click for detail with mappings |
-| **Frameworks** | View all 12 frameworks; click to see controls |
+| **Frameworks** | View all 15 frameworks; click to see controls |
 | **Mappings** | Filterable view of all 922 cross-mappings |
 | **Evaluate** | Select a data item + value to check compliance per framework |
 | **Reports** | Compliance coverage summary + gap analysis across all frameworks |
@@ -78,6 +78,9 @@ Open [http://localhost:3000](http://localhost:3000) to use the application.
 | 10 | DORA (EU 2022/2554) | EU | 40 |
 | 11 | NIS2 (EU 2022/2555) | EU | 37 |
 | 12 | ISO/IEC 42001:2023 | GLB | 20 |
+| 13 | IMO Resolution MSC.428(98) | GLB-MAR | 12 |
+| 14 | IACS UR E26 Rev.1 | GLB-MAR | 20 |
+| 15 | IACS UR E27 Rev.1 | GLB-MAR | 25 |
 
 ---
 
@@ -112,13 +115,14 @@ Open [http://localhost:3000](http://localhost:3000) to use the application.
 compliance-engine/
 ├── prisma/
 │   ├── schema.prisma        # DataItem, Framework, Control, Mapping
-│   ├── seed.ts              # 12 frameworks, 610 controls, 134 items, 922 mappings
+│   ├── seed.ts              # 15 frameworks, 667 controls, 134 items, 922 mappings
 │   └── migrations/          # Database migrations
 ├── src/
 │   ├── app/
 │   │   ├── page.tsx          # Dashboard
 │   │   ├── nav.tsx           # Sidebar navigation
 │   │   ├── layout.tsx        # Root layout
+│   │   ├── controls/       # Control detail page with data items table + mappings
 │   │   ├── data-items/      # List + detail pages
 │   │   ├── frameworks/      # List + detail pages
 │   │   ├── mappings/        # Mapping overview
@@ -129,11 +133,17 @@ compliance-engine/
 │   │   ├── prisma.ts        # Prisma singleton
 │   │   └── logger.ts        # JSON logger
 │   └── globals.css          # Tailwind styles
+├── scripts/
+│   ├── enrich.ts            # Enrich descriptions with SLA/remediation/evidence
+│   └── enrich-controls.ts   # Generate article-style control descriptions
 ├── public/
 │   ├── data/                # SQLite database (auto-created)
 │   └── logo.png             # Application logo
+├── PROJECT_MAP.md           # Detailed project documentation
 ├── package.json
 ├── tsconfig.json
+├── eslint.config.mjs
+├── postcss.config.mjs
 └── next.config.ts
 ```
 
