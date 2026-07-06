@@ -31,7 +31,8 @@ Browser (Next.js SSR)
 │  - Frameworks    │     │  - /api/mappings  │
 │  - Mappings      │     │  - /api/evaluate  │
 │  - Evaluate      │     │  - /api/reports/* │
-│  - Reports       │     └────────┬─────────┘
+│  - Policies      │     └────────┬─────────┘
+│  - Reports       │              │
 └──────────────────┘              │
                                   ▼
                          ┌──────────────────┐
@@ -78,6 +79,9 @@ compliance-app/
 │   │   │   └── [id]/page.tsx  # Control detail: stats, data items table, mappings
 │   │   ├── mappings/page.tsx  # Overview by framework + severity
 │   │   ├── evaluate/page.tsx  # Client-side evaluation tool
+│   │   ├── policies/
+│   │   │   ├── page.tsx       # Policy generator - framework selection
+│   │   │   └── [id]/page.tsx  # Generated policy document from controls
 │   │   ├── reports/page.tsx   # Compliance + gap analysis
 │   │   └── api/
 │   │       ├── data-items/route.ts       # GET/POST
@@ -157,7 +161,7 @@ Mapping (id, dataItemId, controlId, justification, severity,
 |---|---|---|
 | All content seeded | ✅ DONE | 15 frameworks, 667 controls, 134 data items, 922 mappings |
 | All APIs built | ✅ DONE | CRUD + evaluate + compliance + gap reports |
-| Frontend complete | ✅ DONE | 6 pages: Dashboard, Data Items, Frameworks, Mappings, Evaluate, Reports |
+| Frontend complete | ✅ DONE | 7 pages: Dashboard, Data Items, Frameworks, Mappings, Evaluate, Policies, Reports |
 | Build passes | ✅ DONE | `npm run build` → compiled + type-checked |
 | Auth / SSO | 📋 Phase 2 | Not in MVP scope |
 | Multi-tenant | 📋 Phase 2 | Row-level security ready in schema |

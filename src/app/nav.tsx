@@ -10,6 +10,7 @@ const links = [
   { href: "/frameworks", label: "Frameworks", icon: "book" },
   { href: "/mappings", label: "Mappings", icon: "link" },
   { href: "/evaluate", label: "Evaluate", icon: "check" },
+  { href: "/policies", label: "Policies", icon: "document" },
   { href: "/reports", label: "Reports", icon: "chart" },
 ];
 
@@ -22,7 +23,7 @@ export function Nav() {
         <Image src="/logo.png" alt="Logo" width={40} height={40} className="rounded" />
         <div>
           <h1 className="text-white font-bold text-lg">Compliance Engine</h1>
-          <p className="text-xs text-slate-400 mt-0.5">12 Frameworks · 134 Data Items</p>
+          <p className="text-xs text-slate-400 mt-0.5">15 Frameworks · 134 Data Items</p>
         </div>
       </div>
       <nav className="flex-1 p-3 space-y-1">
@@ -52,7 +53,7 @@ export function Nav() {
 
 function Icon({ name }: { name: string }) {
   const icons: Record<string, string> = {
-    grid: "▦", database: "🗄", book: "📖", link: "🔗", check: "✓", chart: "📊",
+    grid: "▦", database: "🗄", book: "📖", link: "🔗", check: "✓", document: "📄", chart: "📊",
   };
   return <span className="w-5 text-center">{icons[name] || "○"}</span>;
 }
