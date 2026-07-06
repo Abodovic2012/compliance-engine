@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: complyflow
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/complyflow
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-complyflow-dev-secret-change-in-production-123456}
+      BETTER_AUTH_URL: http://localhost:3000
+    depends_on:
+      - postgres
+    command: sh -c "npx prisma db push && npx tsx prisma/seed.ts && npm start"
+
+volumes:
+  pgdata:

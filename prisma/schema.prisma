@@ -1,0 +1,244 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String               @id @default(cuid())
+  name           String?
+  email          String               @unique
+  emailVerified  Boolean              @default(false)
+  image          String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  organizationMembers OrganizationMember[]
+  sessions       Session[]
+  accounts       Account[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  expiresAt    DateTime
+  token        String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  ipAddress    String?
+  userAgent    String?
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id              String  @id @default(cuid())
+  accountId       String  @default("")
+  providerId      String  @default("")
+  userId          String
+  accessToken     String?
+  refreshToken    String?
+  idToken         String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope           String?
+  password        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Verification {
+  id          String   @id @default(cuid())
+  identifier  String
+  value       String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members      OrganizationMember[]
+  assessments  Assessment[]
+  auditLogs    AuditLog[]
+  inviteTokens InviteToken[]
+}
+
+model OrganizationMember {
+  id             String       @id @default(cuid())
+  role           String       @default("member")
+  joinedAt       DateTime     @default(now())
+  organizationId String
+  userId         String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  controlAssessments ControlAssessment[]
+  evidence       Evidence[]
+  auditLogs      AuditLog[]
+  createdInvites InviteToken[]
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+model Framework {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  domains     Domain[]
+  refs        Ref[]
+}
+
+model Domain {
+  id          String   @id @default(cuid())
+  code        String
+  name        String
+  description String?
+  frameworkId String
+  sortOrder   Int      @default(0)
+  framework   Framework @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
+  controls    Control[]
+
+  @@unique([code, frameworkId])
+  @@index([frameworkId])
+}
+
+model Control {
+  id          String   @id @default(cuid())
+  code        String
+  name        String
+  description String?
+  guidance    String?
+  domainId    String
+  sortOrder   Int      @default(0)
+  domain      Domain   @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  assessments ControlAssessment[]
+
+  @@unique([code, domainId])
+  @@index([domainId])
+}
+
+model Assessment {
+  id             String   @id @default(cuid())
+  name           String
+  status         String   @default("draft")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  controlResults ControlAssessment[]
+
+  @@index([organizationId])
+}
+
+model ControlAssessment {
+  id                String   @id @default(cuid())
+  status            String   @default("not_assessed")
+  notes             String?
+  updatedAt         DateTime @updatedAt
+  assessmentId      String
+  controlId         String
+  updatedByMemberId String
+  assessment        Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  control           Control    @relation(fields: [controlId], references: [id], onDelete: Cascade)
+  updatedBy         OrganizationMember @relation(fields: [updatedByMemberId], references: [id])
+  evidence          Evidence[]
+
+  @@unique([assessmentId, controlId])
+  @@index([assessmentId])
+  @@index([controlId])
+}
+
+model Evidence {
+  id                   String   @id @default(cuid())
+  type                 String
+  value                String
+  filename             String?
+  uploadedByMemberId   String
+  controlAssessmentId  String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  uploadedBy           OrganizationMember @relation(fields: [uploadedByMemberId], references: [id])
+  controlAssessment    ControlAssessment @relation(fields: [controlAssessmentId], references: [id], onDelete: Cascade)
+
+  @@index([controlAssessmentId])
+}
+
+model Ref {
+  id          String   @id @default(cuid())
+  code        String
+  name        String
+  description String?
+  frameworkId String
+  framework   Framework @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
+  dataItems   RefDataItem[]
+
+  @@unique([code, frameworkId])
+  @@index([frameworkId])
+}
+
+model DataItem {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  refs        RefDataItem[]
+}
+
+model RefDataItem {
+  id          String   @id @default(cuid())
+  refId       String
+  dataItemId  String
+  ref         Ref      @relation(fields: [refId], references: [id], onDelete: Cascade)
+  dataItem    DataItem @relation(fields: [dataItemId], references: [id], onDelete: Cascade)
+
+  @@unique([refId, dataItemId])
+  @@index([refId])
+  @@index([dataItemId])
+}
+
+model InviteToken {
+  id                String            @id @default(cuid())
+  email             String
+  token             String            @unique
+  organizationId    String
+  createdByMemberId String
+  expiresAt         DateTime
+  usedAt            DateTime?
+  createdAt         DateTime          @default(now())
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy         OrganizationMember @relation(fields: [createdByMemberId], references: [id])
+
+  @@index([token])
+  @@index([organizationId])
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  action         String
+  entityType     String
+  entityId       String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  memberId       String
+  organizationId String
+  member         OrganizationMember @relation(fields: [memberId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([entityType, entityId])
+}
