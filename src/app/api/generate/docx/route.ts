@@ -45,10 +45,13 @@ interface RequestBody {
   framework: FrameworkInfo;
   controls: ControlInfo[];
   generatedDate: string;
+  policyId?: string;
+  policyName?: string;
 }
 
 function createDoc(body: RequestBody) {
-  const { company, framework, controls, generatedDate } = body;
+  const { company, framework, controls, generatedDate, policyName } = body;
+  const docTitle = policyName && policyName !== "General Policy" ? policyName : "COMPLIANCE POLICY";
 
   const section = (text: string) =>
     new Paragraph({
@@ -132,12 +135,13 @@ function createDoc(body: RequestBody) {
   children.push(
     new Paragraph({
       alignment: AlignmentType.CENTER,
-      children: [new TextRun({ text: "COMPLIANCE POLICY", bold: true, size: 36, font: "Calibri" })],
+      children: [new TextRun({ text: docTitle, bold: true, size: 36, font: "Calibri" })],
       spacing: { before: 600, after: 200 },
     })
   );
 
-  const docRef = `POL-${framework.name.substring(0, 3).toUpperCase()}-001`;
+  const policySuffix = body.policyId && body.policyId !== "all" ? body.policyId.toUpperCase().replace(/-/g, "") : "GEN";
+  const docRef = `POL-${framework.name.substring(0, 3).toUpperCase()}-${policySuffix}`;
   children.push(
     new Paragraph({
       alignment: AlignmentType.CENTER,
@@ -199,7 +203,7 @@ function createDoc(body: RequestBody) {
   children.push(section("2.0 Policy Requirements"));
   children.push(
     bodyText(
-      `The following controls define the specific requirements that shall be implemented by ${company.companyName} to achieve and maintain compliance with ${framework.name}. Each control includes the reference identifier, thematic category, and the mandatory requirement statement.`
+      `The following controls define the specific requirements that shall be implemented by ${company.companyName} to achieve and maintain compliance with ${framework.name}. Each control includes the reference identifier, thematic category, and the mandatory requirement statement.${policyName && policyName !== "General Policy" ? ` Only controls relevant to ${policyName} are listed in this section.` : ""}`
     )
   );
   for (const c of controls) {
@@ -323,7 +327,7 @@ function createDoc(body: RequestBody) {
                 alignment: AlignmentType.RIGHT,
                 children: [
                   new TextRun({
-                    text: `Compliance Policy — ${company.companyName}`,
+                    text: `${docTitle} — ${company.companyName}`,
                     size: 16,
                     font: "Calibri",
                     color: "999999",
@@ -363,7 +367,8 @@ export async function POST(req: NextRequest) {
     const doc = createDoc(body);
     const buffer = await Packer.toBuffer(doc);
 
-    const filename = `${body.company.companyName.replace(/\s+/g, "_")}_Policy_${body.framework.name.replace(/\s+/g, "_")}.docx`;
+    const policySuffix = body.policyId && body.policyId !== "all" ? body.policyId : "General_Policy";
+    const filename = `${body.company.companyName.replace(/\s+/g, "_")}_${policySuffix}_${body.framework.name.replace(/\s+/g, "_")}.docx`;
 
     return new Response(new Uint8Array(buffer), {
       headers: {

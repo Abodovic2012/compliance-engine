@@ -62,37 +62,45 @@ compliance-app/
 │   └── dev.db                 # SQLite database (seeded)
 ├── src/
 │   ├── lib/
-│   │   ├── prisma.ts          # Singleton client
-│   │   └── logger.ts          # Async JSON logger
+│   │   ├── prisma.ts              # Singleton client
+│   │   ├── logger.ts              # Async JSON logger
+│   │   └── policy-taxonomy.ts     # 18 sub-policies, keyword classification
+│   ├── components/
+│   │   └── print-button.tsx       # Client-side print button
 │   ├── app/
-│   │   ├── layout.tsx         # Root layout + sidebar nav
-│   │   ├── nav.tsx            # Navigation component
-│   │   ├── globals.css        # Tailwind + custom styles
-│   │   ├── page.tsx           # Dashboard (stats + quick actions)
+│   │   ├── layout.tsx             # Root layout + sidebar nav
+│   │   ├── nav.tsx                # Navigation component
+│   │   ├── globals.css            # Tailwind + custom styles
+│   │   ├── page.tsx               # Dashboard (stats + quick actions)
 │   │   ├── data-items/
-│   │   │   ├── page.tsx       # List + filter by domain
-│   │   │   └── [id]/page.tsx  # Detail with mappings
+│   │   │   ├── page.tsx           # List + filter by domain
+│   │   │   └── [id]/page.tsx      # Detail with mappings
 │   │   ├── frameworks/
-│   │   │   ├── page.tsx       # Grid of all frameworks
-│   │   │   └── [id]/page.tsx  # Controls list
+│   │   │   ├── page.tsx           # Grid of all frameworks
+│   │   │   └── [id]/page.tsx      # Controls list
 │   │   ├── controls/
-│   │   │   └── [id]/page.tsx  # Control detail: stats, data items table, mappings
-│   │   ├── mappings/page.tsx  # Overview by framework + severity
-│   │   ├── evaluate/page.tsx  # Client-side evaluation tool
+│   │   │   └── [id]/page.tsx      # Control detail: stats, data items table, mappings
+│   │   ├── mappings/page.tsx      # Overview by framework + severity
+│   │   ├── evaluate/page.tsx      # Client-side evaluation tool
+│   │   ├── generate/
+│   │   │   ├── page.tsx           # Company info form + framework selector
+│   │   │   └── [id]/page.tsx      # Sub-policy navigation + preview
 │   │   ├── policies/
-│   │   │   ├── page.tsx       # Policy generator - framework selection
-│   │   │   └── [id]/page.tsx  # Generated policy document from controls
-│   │   ├── reports/page.tsx   # Compliance + gap analysis
+│   │   │   ├── page.tsx           # Policy generator - framework selection
+│   │   │   └── [id]/page.tsx      # Generated policy document from controls
+│   │   ├── reports/page.tsx       # Compliance + gap analysis
 │   │   └── api/
-│   │       ├── data-items/route.ts       # GET/POST
-│   │       ├── data-items/[id]/route.ts  # GET/DELETE
-│   │       ├── frameworks/route.ts       # GET
-│   │       ├── frameworks/[id]/controls/route.ts  # GET
-│   │       ├── mappings/route.ts         # GET (filterable)
-│   │       ├── evaluate/route.ts         # POST (compliance check)
+│   │       ├── data-items/route.ts          # GET/POST
+│   │       ├── data-items/[id]/route.ts     # GET/DELETE
+│   │       ├── frameworks/route.ts          # GET
+│   │       ├── frameworks/[id]/controls/    # GET (framework + controls)
+│   │       ├── mappings/route.ts            # GET (filterable)
+│   │       ├── evaluate/route.ts            # POST (compliance check)
+│   │       ├── generate/
+│   │       │   └── docx/route.ts            # POST (DOCX generation)
 │   │       └── reports/
-│   │           ├── compliance/route.ts   # Compliance summary
-│   │           └── gap/route.ts          # Gap analysis
+│   │           ├── compliance/route.ts      # Compliance summary
+│   │           └── gap/route.ts             # Gap analysis
 │   └── (generated Next.js files)
 ├── package.json
 └── PROJECT_MAP.md
@@ -181,7 +189,9 @@ Mapping (id, dataItemId, controlId, justification, severity,
 | **M4** | Frontend Baseline | ✅ 6 pages with Tailwind CSS |
 | **M5** | Full Content | ✅ 18 domains, 15 frameworks, 134 items, 922 mappings |
 | **M6** | Reporting | ✅ Compliance summary + gap analysis |
-| **M7** | Auth + Multi-tenant | 📋 Phase 2 |
+| **M7** | Policy Generator | ✅ Company-specific policy suite with 18 sub-policies per framework |
+| **M8** | DOCX Export | ✅ Server-side .docx generation via `docx` package |
+| **M9** | Auth + Multi-tenant | 📋 Phase 2 |
 
 ---
 
