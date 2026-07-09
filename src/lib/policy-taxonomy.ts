@@ -59,11 +59,8 @@ const policies: SubPolicy[] = [
       "cloud service",
       "cloud security",
       "ba contract",
-      "contractual",
-      "external system",
       "external",
       "procurement",
-      "ict asset inventory",
     ],
   },
 
@@ -80,7 +77,6 @@ const policies: SubPolicy[] = [
       "acceptable use",
       "rules of behavior",
       "workstation use",
-      "information transfer",
     ],
   },
   {
@@ -170,25 +166,20 @@ const policies: SubPolicy[] = [
       "access authorization",
       "access review",
       "identity management",
-      "identity",
-      "id management",
       "federation",
       "user identification",
       "unique user id",
       "least privilege",
       "segregation of duties",
-      "segregation",
       "account management",
       "account inventory",
       "account permission",
-      "account",
       "service account",
       "authorization",
       "privileged access",
       "logical access",
       "system access",
       "group plan",
-      "access to pi",
       "access agreement",
     ],
   },
@@ -246,12 +237,6 @@ const policies: SubPolicy[] = [
     keywords: [
       "classification",
       "labelling",
-      "register",
-      "record of processing",
-      "data inventory",
-      "data portability",
-      "data subject",
-      "data minimization",
     ],
   },
   {
@@ -383,7 +368,6 @@ const policies: SubPolicy[] = [
       "malicious code",
       "ransomware",
       "scanning",
-      "remediation",
     ],
   },
   {
@@ -405,7 +389,6 @@ const policies: SubPolicy[] = [
       "audit event",
       "audit generation",
       "audit review",
-      "audit",
       "siem",
       "event analysis",
       "event correlation",
@@ -452,7 +435,6 @@ const policies: SubPolicy[] = [
       "This policy defines the strategies, plans, and procedures for maintaining critical business operations during major disruptions, including natural disasters, cyber attacks, and infrastructure failures.",
     keywords: [
       "business continuity",
-      "bc",
       "bcdr",
       "disaster recovery",
       "contingency",
@@ -552,12 +534,12 @@ const governancePolicy: SubPolicy = {
   keywords: [],
 };
 
-function classifyControl(theme: string, description: string): SubPolicy {
-  const text = (theme + " " + description).toLowerCase();
+function classifyControl(theme: string): SubPolicy {
+  const t = theme.toLowerCase();
 
   for (const policy of policies) {
     for (const kw of policy.keywords) {
-      if (text.includes(kw.toLowerCase())) {
+      if (t.includes(kw.toLowerCase())) {
         return policy;
       }
     }
@@ -566,7 +548,7 @@ function classifyControl(theme: string, description: string): SubPolicy {
   return governancePolicy;
 }
 
-export function classifyControls<T extends { theme: string; description: string }>(
+export function classifyControls<T extends { theme: string }>(
   controls: T[]
 ): Map<string, T[]> {
   const map = new Map<string, T[]>();
@@ -576,7 +558,7 @@ export function classifyControls<T extends { theme: string; description: string 
   }
 
   for (const c of controls) {
-    const policy = classifyControl(c.theme, c.description);
+    const policy = classifyControl(c.theme);
     const list = map.get(policy.id)!;
     list.push(c);
   }
