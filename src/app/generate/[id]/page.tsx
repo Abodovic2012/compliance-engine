@@ -42,7 +42,7 @@ export default function PolicyPreview(props: { params: Promise<{ id: string }> }
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("all");
-  const [expandedDomains, setExpandedDomains] = useState<number[]>([]);
+  const [expandedDomains, setExpandedDomains] = useState<number[]>([0, 1, 2, 3, 4, 5, 6, 7]);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("policy-company");

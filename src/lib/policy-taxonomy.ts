@@ -20,35 +20,6 @@ const domains = [
 ];
 
 const policies: SubPolicy[] = [
-  // 1. Master Governance
-  {
-    id: "governance",
-    name: "Information Security Governance Policy",
-    domain: domains[0],
-    domainIndex: 0,
-    order: 1,
-    purpose:
-      "This policy establishes the overarching governance framework for information security within the Organization. It defines the authority of the CISO, the structure of the security organization, and the executive-level commitment required to protect the Organization's information assets.",
-    keywords: [
-      "polic",
-      "roles",
-      "management",
-      "governance",
-      "executive oversight",
-      "accountability",
-      "control environment",
-      "control activities",
-      "independent review",
-      "legal compliance",
-      "compliance",
-      "oversight",
-      "central contact",
-      "commitment",
-      "responsibilities",
-      "policy compliance",
-    ],
-  },
-
   // 2. Risk & Vendor Management
   {
     id: "risk-management",
@@ -536,6 +507,36 @@ const policies: SubPolicy[] = [
       "emergency power",
       "environmental threat",
       "offices",
+    ],
+  },
+
+  // 1. Master Governance (last = lowest priority, checked after all other policies)
+  {
+    id: "governance",
+    name: "Information Security Governance Policy",
+    domain: domains[0],
+    domainIndex: 0,
+    order: 99,
+    purpose:
+      "This policy establishes the overarching governance framework for information security within the Organization. It defines the authority of the CISO, the structure of the security organization, and the executive-level commitment required to protect the Organization's information assets.",
+    keywords: [
+      "isms",
+      "governance framework",
+      "executive oversight",
+      "information security policy",
+      "roles and responsibilities",
+      "management review",
+      "internal audit",
+      "audit program",
+      "documented information",
+      "continual improvement",
+      "corrective action",
+      "interested parties",
+      "independent review",
+      "policy framework",
+      "central contact",
+      "competent authorities",
+      "supervisory cooperation",
     ],
   },
 ];
