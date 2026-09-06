@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { computeScopeCoverage } from "@/lib/coverage";
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +22,13 @@ export async function GET(request: NextRequest) {
         mappings: {
           include: {
             control: {
-              select: { ref: true, theme: true, frameworkId: true, framework: { select: { name: true } } },
+              select: {
+                id: true,
+                ref: true,
+                theme: true,
+                frameworkId: true,
+                framework: { select: { name: true, version: true, region: true } },
+              },
             },
           },
         },
@@ -34,7 +41,23 @@ export async function GET(request: NextRequest) {
       _count: { category: true },
     });
 
-    return Response.json({ scopes, categories });
+    const controlCounts = await prisma.control.groupBy({
+      by: ["frameworkId"],
+      _count: { frameworkId: true },
+    });
+    const totalControlsByFramework = new Map(
+      controlCounts.map((c) => [c.frameworkId, c._count.frameworkId]),
+    );
+
+    const scopesWithCoverage = scopes.map((s) => ({
+      ...s,
+      coverage: computeScopeCoverage(
+        s.mappings.map((m) => ({ control: m.control })),
+        totalControlsByFramework,
+      ),
+    }));
+
+    return Response.json({ scopes: scopesWithCoverage, categories });
   } catch (error) {
     logger.error("Failed to fetch scopes", { error: String(error) });
     return Response.json({ error: "Internal server error" }, { status: 500 });
