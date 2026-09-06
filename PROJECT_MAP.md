@@ -1,6 +1,6 @@
-# Compliance Mapping Engine — PROJECT MAP
+# Compliance Mapping Engine - PROJECT MAP
 
-> Generated: 2026-06-18 | Updated: 2026-06-18 | Status: **PRODUCTION-READY**
+> Generated: 2026-06-18 | Updated: 2026-09-06 | Status: **PRODUCTION-READY**
 
 ---
 
@@ -8,13 +8,13 @@
 
 | Layer | Technology | Version | Status |
 |---|---|---|---|
-| Runtime | Node.js | 20.11.1 LTS | ✅ Active |
-| Framework | Next.js | 16.2.9 | ✅ Production Build |
-| UI Library | React | 19.2.4 | ✅ Latest |
-| ORM | Prisma | 5.22.0 | ✅ Migrated + Seeded |
-| Database | SQLite | (built-in) | ✅ `dev.db` |
-| Language | TypeScript | 5.x | ✅ Type-checked |
-| CSS | Tailwind CSS | v4 | ✅ |
+| Runtime | Node.js | 20.11.1 LTS | Active |
+| Framework | Next.js | 16.2.9 | Production Build |
+| UI Library | React | 19.2.4 | Latest |
+| ORM | Prisma | 5.22.0 | Migrated + Seeded |
+| Database | SQLite | (built-in) | `dev.db` |
+| Language | TypeScript | 5.x | Type-checked |
+| CSS | Tailwind CSS | v4 | |
 
 ---
 
@@ -22,32 +22,32 @@
 
 ```
 Browser (Next.js SSR)
-       │
-       ▼
-┌──────────────────┐     ┌──────────────────┐
-│  Next.js Pages   │────▶│  API Routes      │
-│  - Dashboard     │     │  - /api/data-items│
-│  - Data Items    │     │  - /api/frameworks│
-│  - Frameworks    │     │  - /api/mappings  │
-│  - Mappings      │     │  - /api/evaluate  │
-│  - Evaluate      │     │  - /api/reports/* │
-│  - Policies      │     └────────┬─────────┘
-│  - Reports       │              │
-└──────────────────┘              │
-                                  ▼
-                         ┌──────────────────┐
-                         │  Prisma ORM      │
-                         │  (SQLite)        │
-                          │  134 Data Items  │
-                           │  667 Controls    │
-                          │  922 Mappings    │
-                         └──────────────────┘
+      |
+      +----> Next.js Pages <----> API Routes
+      |         - Dashboard        - /api/data-items
+      |         - Data Items       - /api/frameworks
+      |         - Frameworks       - /api/mappings
+      |         - Mappings         - /api/evaluate
+      |         - Evaluate         - /api/reports/*
+      |         - Policies         - /api/scopes
+      |         - Reports          - /api/scopes/assessment
+      |         - Scopes           - /api/assessment/report
+      |         - Scorecard
+      |
+      v
+   Prisma ORM (SQLite)
+   134 Data Items
+   667 Controls
+   922 Mappings
+   169 OAuth Scopes
+   7,682 Scope Mappings
 ```
 
 ### Data Flow
-1. **Browse** → User navigates data items / frameworks / mappings
-2. **Evaluate** → User selects item + value → API computes compliance per framework
-3. **Report** → Compliance summary + gap analysis generated
+1. **Browse** - User navigates data items / frameworks / mappings / scopes
+2. **Evaluate** - User selects item + value, API computes compliance per framework
+3. **Report** - Compliance summary + gap analysis generated
+4. **Scorecard** - User marks permissions in checklist/inventory modes, API computes per-framework % + weak points
 
 ---
 
@@ -56,58 +56,63 @@ Browser (Next.js SSR)
 ### File Structure
 ```
 compliance-app/
-├── prisma/
-│   ├── schema.prisma          # DataItem, Framework, Control, Mapping
-│   ├── seed.ts                # 15 frameworks, 667 controls, 134 items, 922 mappings (+ calls seedScopes)
-│   ├── scopes-seed.ts         # 169 OAuth scopes + 7,682 scope-to-control mappings
-│   └── dev.db                 # SQLite database (seeded)
-├── src/
-│   ├── lib/
-│   │   ├── prisma.ts              # Singleton client
-│   │   ├── logger.ts              # Async JSON logger
-│   │   └── policy-taxonomy.ts     # 18 sub-policies, keyword classification
-│   ├── components/
-│   │   └── print-button.tsx       # Client-side print button
-│   ├── app/
-│   │   ├── layout.tsx             # Root layout + sidebar nav
-│   │   ├── nav.tsx                # Navigation component
-│   │   ├── scopes/
-│   │   │   └── page.tsx           # OAuth scopes explorer (Google Workspace + MS Graph)
-│   │   ├── globals.css            # Tailwind + custom styles
-│   │   ├── page.tsx               # Dashboard (stats + quick actions)
-│   │   ├── data-items/
-│   │   │   ├── page.tsx           # List + filter by domain
-│   │   │   └── [id]/page.tsx      # Detail with mappings
-│   │   ├── frameworks/
-│   │   │   ├── page.tsx           # Grid of all frameworks
-│   │   │   └── [id]/page.tsx      # Controls list
-│   │   ├── controls/
-│   │   │   └── [id]/page.tsx      # Control detail: stats, data items table, mappings
-│   │   ├── mappings/page.tsx      # Overview by framework + severity
-│   │   ├── evaluate/page.tsx      # Client-side evaluation tool
-│   │   ├── generate/
-│   │   │   ├── page.tsx           # Company info form + framework selector
-│   │   │   └── [id]/page.tsx      # Sub-policy navigation + preview
-│   │   ├── policies/
-│   │   │   ├── page.tsx           # Policy generator - framework selection
-│   │   │   └── [id]/page.tsx      # Generated policy document from controls
-│   │   ├── reports/page.tsx       # Compliance + gap analysis
-│   │   └── api/
-│   │       ├── data-items/route.ts          # GET/POST
-│   │       ├── data-items/[id]/route.ts     # GET/DELETE
-│   │       ├── frameworks/route.ts          # GET
-│   │       ├── frameworks/[id]/controls/    # GET (framework + controls)
-│   │       ├── mappings/route.ts            # GET (filterable)
-│   │       ├── scopes/route.ts              # GET (filterable scopes + control mappings)
-│   │       ├── evaluate/route.ts            # POST (compliance check)
-│   │       ├── generate/
-│   │       │   └── docx/route.ts            # POST (DOCX generation)
-│   │       └── reports/
-│   │           ├── compliance/route.ts      # Compliance summary
-│   │           └── gap/route.ts             # Gap analysis
-│   └── (generated Next.js files)
-├── package.json
-└── PROJECT_MAP.md
+|- prisma/
+|  |- schema.prisma          # DataItem, Framework, Control, Mapping, Scope, ScopeMapping, ScopeAssessment
+|  |- seed.ts                # 15 frameworks, 667 controls, 134 items, 922 mappings (+ calls seedScopes)
+|  |- scopes-seed.ts         # 169 OAuth scopes + 7,682 scope-to-control mappings + audit test data
+|  |- dev.db                 # SQLite database (seeded)
+|- src/
+|  |- lib/
+|  |  |- prisma.ts              # Singleton client
+|  |  |- logger.ts              # Async JSON logger
+|  |  |- policy-taxonomy.ts     # 18 sub-policies, keyword classification
+|  |  |- scoring.ts             # Scorecard engine: % per framework + weak points (checklist/inventory)
+|  |  |- assessment.ts          # Scope -> ScopeWithData mapping + report builder
+|  |- components/
+|  |  |- print-button.tsx       # Client-side print button
+|  |- app/
+|  |  |- layout.tsx             # Root layout + sidebar nav
+|  |  |- nav.tsx                # Navigation component
+|  |  |- scopes/
+|  |  |  |- page.tsx            # OAuth scopes explorer (Google Workspace + MS Graph)
+|  |  |- assessment/
+|  |  |  |- page.tsx            # Interactive scorecard (checklist + inventory, weak points, %)
+|  |  |- globals.css            # Tailwind + custom styles
+|  |  |- page.tsx               # Dashboard (stats + quick actions)
+|  |  |- data-items/
+|  |  |  |- page.tsx            # List + filter by domain
+|  |  |  |- [id]/page.tsx       # Detail with mappings
+|  |  |- frameworks/
+|  |  |  |- page.tsx            # Grid of all frameworks
+|  |  |  |- [id]/page.tsx       # Controls list
+|  |  |- controls/
+|  |  |  |- [id]/page.tsx       # Control detail: stats, data items table, mappings
+|  |  |- mappings/page.tsx      # Overview by framework + severity
+|  |  |- evaluate/page.tsx      # Client-side evaluation tool
+|  |  |- generate/
+|  |  |  |- page.tsx            # Company info form + framework selector
+|  |  |  |- [id]/page.tsx       # Sub-policy navigation + preview
+|  |  |- policies/
+|  |  |  |- page.tsx            # Policy generator - framework selection
+|  |  |  |- [id]/page.tsx       # Generated policy document from controls
+|  |  |- reports/page.tsx       # Compliance + gap analysis
+|  |  |- api/
+|  |     |- data-items/route.ts          # GET/POST
+|  |     |- data-items/[id]/route.ts     # GET/DELETE
+|  |     |- frameworks/route.ts          # GET
+|  |     |- frameworks/[id]/controls/    # GET (framework + controls)
+|  |     |- mappings/route.ts            # GET (filterable)
+|  |     |- scopes/route.ts              # GET (filterable scopes + control mappings)
+|  |     |- scopes/assessment/route.ts   # GET/POST (user assessment states per mode)
+|  |     |- assessment/report/route.ts   # GET (scorecard: per-framework % + weak points + scopes)
+|  |     |- evaluate/route.ts            # POST (compliance check)
+|  |     |- generate/
+|  |     |  |- docx/route.ts            # POST (DOCX generation)
+|  |     |- reports/
+|  |        |- compliance/route.ts      # Compliance summary
+|  |        |- gap/route.ts             # Gap analysis
+|- package.json
+|- PROJECT_MAP.md
 ```
 
 ### Database Schema
@@ -119,16 +124,18 @@ Mapping (id, dataItemId, controlId, justification, severity,
          slaThreshold, findingType, remediation, evidenceRequired,
          region, supplyChainFlag, kevOverride, testId)
 Scope (id, provider, scopeId, displayName, description, category,
-       adminConsentRequired, accessLevel)
+       adminConsentRequired, accessLevel, testProcedure,
+       evidenceRequired, testReference)
 ScopeMapping (id, scopeId, controlId, justification, riskLevel)
+ScopeAssessment (id, scopeId, mode, state, notes, evidence, updatedAt)
 ```
 
 ---
 
-## [FRAMEWORKS LOADED] ✅
+## [FRAMEWORKS LOADED]
 
 | # | Framework | Version | Controls |
-|---|---|---|---|---|---|
+|---|---|---|---|
 | 1 | ISO/IEC 27001:2022 | 2022 | 93 |
 | 2 | NIST SP 800-53 Rev.5 | Rev.5 | 72 |
 | 3 | CIS Controls v8 | v8 | 68 |
@@ -145,10 +152,10 @@ ScopeMapping (id, scopeId, controlId, justification, riskLevel)
 | 14 | **IACS UR E26 Rev.1** | Rev.1 Nov 2023 | **20** |
 | 15 | **IACS UR E27 Rev.1** | Rev.1 Sep 2023 | **25** |
 
-## [DOMAINS LOADED] ✅
+## [DOMAINS LOADED]
 
 | # | Domain | Data Items | Mappings |
-|---|---|---|---|---|
+|---|---|---|---|
 | 1 | Identity & Access | 10 | 72 |
 | 2 | Data Protection | 10 | 67 |
 | 3 | Network Security | 9 | 60 |
@@ -174,33 +181,35 @@ ScopeMapping (id, scopeId, controlId, justification, riskLevel)
 
 | Item | Status | Notes |
 |---|---|---|
-| All content seeded | ✅ DONE | 15 frameworks, 667 controls, 134 data items, 922 mappings + 169 OAuth scopes, 7,682 scope mappings |
-| All APIs built | ✅ DONE | CRUD + evaluate + compliance + gap reports + scopes |
-| Frontend complete | ✅ DONE | 8 pages: Dashboard, Data Items, Frameworks, Mappings, Evaluate, Scopes, Generate, Policies, Reports |
-| Build passes | ✅ DONE | `npm run build` → compiled + type-checked |
-| OAuth Scopes Explorer | ✅ DONE | Google Workspace + Microsoft Graph scopes mapped to framework controls |
-| Auth / SSO | 📋 Phase 2 | Not in MVP scope |
-| Multi-tenant | 📋 Phase 2 | Row-level security ready in schema |
-| Connectors (IdP, CSP) | 📋 Phase 2 | API-first design allows connectors |
-| CI/CD | 📋 Phase 2 | GitHub Actions |
-| Deployment | 📋 Phase 2 | Docker / Vercel ready |
+| All content seeded | DONE | 15 frameworks, 667 controls, 134 data items, 922 mappings + 169 OAuth scopes, 7,682 scope mappings |
+| All APIs built | DONE | CRUD + evaluate + compliance + gap reports + scopes + assessment |
+| Frontend complete | DONE | 9 pages: Dashboard, Data Items, Frameworks, Mappings, Evaluate, Scopes, Scorecard, Generate, Policies, Reports |
+| Build passes | DONE | `npm run build` - compiled + type-checked |
+| OAuth Scopes Explorer | DONE | Google Workspace + Microsoft Graph scopes mapped to framework controls |
+| Compliance Scorecard | DONE | Checklist + inventory modes, per-framework %, weak points, audit test/evidence per scope |
+| Auth / SSO | Phase 2 | Not in MVP scope |
+| Multi-tenant | Phase 2 | Row-level security ready in schema |
+| Connectors (IdP, CSP) | Phase 2 | API-first design allows connectors |
+| CI/CD | Phase 2 | GitHub Actions |
+| Deployment | Phase 2 | Docker / Vercel ready |
 
 ---
 
-## [MILESTONES COMPLETED] ✅
+## [MILESTONES COMPLETED]
 
-| M | الهدف | الحالة |
+| M | Milestone | Status |
 |---|---|---|
-| **M1** | Data Schema + DB | ✅ Prisma schema + SQLite + seed data |
-| **M2** | Core Mapping Engine | ✅ Evaluate API with compliance logic |
-| **M3** | CRUD APIs | ✅ All REST endpoints functional |
-| **M4** | Frontend Baseline | ✅ 6 pages with Tailwind CSS |
-| **M5** | Full Content | ✅ 18 domains, 15 frameworks, 134 items, 922 mappings |
-| **M6** | Reporting | ✅ Compliance summary + gap analysis |
-| **M7** | Policy Generator | ✅ Company-specific policy suite with 18 sub-policies per framework |
-| **M8** | DOCX Export | ✅ Server-side .docx generation via `docx` package |
-| **M9** | OAuth Scopes Explorer | ✅ 169 scopes (Google Workspace + Microsoft Graph) mapped to 7,682 framework controls |
-| **M10** | Auth + Multi-tenant | 📋 Phase 2 |
+| **M1** | Data Schema + DB | Prisma schema + SQLite + seed data |
+| **M2** | Core Mapping Engine | Evaluate API with compliance logic |
+| **M3** | CRUD APIs | All REST endpoints functional |
+| **M4** | Frontend Baseline | 6 pages with Tailwind CSS |
+| **M5** | Full Content | 18 domains, 15 frameworks, 134 items, 922 mappings |
+| **M6** | Reporting | Compliance summary + gap analysis |
+| **M7** | Policy Generator | Company-specific policy suite with 18 sub-policies per framework |
+| **M8** | DOCX Export | Server-side .docx generation via `docx` package |
+| **M9** | OAuth Scopes Explorer | 169 scopes (Google Workspace + Microsoft Graph) mapped to 7,682 framework controls |
+| **M10** | Compliance Scorecard | Checklist + inventory assessment, per-framework % + weak points, audit test/evidence guidance |
+| **M11** | Auth + Multi-tenant | Phase 2 |
 
 ---
 
@@ -211,7 +220,7 @@ cd compliance-app
 npm install          # already done
 npx prisma generate  # already done
 npx prisma db seed   # already done
-npm run dev          # → http://localhost:3000
-npm run build        # production build
+npm run dev          # -> http://localhost:3000
+npm run build        # production build (resets DB + reseeds scopes)
 npm start            # production server
 ```

@@ -1719,6 +1719,102 @@ function mapScopeCategoryToThemes(category: string): ThemeKeywordMap[] {
   return CATEGORY_THEME_MAP.filter((m) => m.category === category);
 }
 
+function buildTestData(
+  category: string,
+  provider: string,
+  accessLevel: string,
+): { testProcedure: string; evidenceRequired: string; testReference: string } {
+  const consoleLabel = provider === 'google' ? 'Google Admin console' : 'Microsoft 365 / Entra admin center';
+  const cat = category.toLowerCase();
+
+  if (cat.includes('identity') || cat.includes('access')) {
+    return {
+      testProcedure:
+        'Inspect ' + consoleLabel + ' Identity & Access / permission grants. Confirm the scope is granted only to approved app principals and review the access review logs for outstanding owner/admin assignments.',
+      evidenceRequired: 'Screenshot of granted-scope matrix; access review report export; list of app role assignments with approver.',
+      testReference: 'OIDC/Entra consent reports; monthly access review minutes',
+    };
+  }
+  if (cat.includes('email') || cat.includes('mail')) {
+    return {
+      testProcedure:
+        'Review ' + consoleLabel + ' email mailbox permissions and delegation. Confirm the scope maps to sanctioned mailbox access and that DLP/retention policies cover the data this scope can read.',
+      evidenceRequired: 'Mailbox permission audit export; DLP policy screenshot; retention labels applied to mail.',
+      testReference: 'Exchange admin audit logs; message trace',
+    };
+  }
+  if (cat.includes('data protection') || cat.includes('record')) {
+    return {
+      testProcedure:
+        'Confirm data classification, retention, and eDiscovery scopes are scoped to sanctioned repositories. Verify DLP policies and retention labels are enforced for data reachable via this scope.',
+      evidenceRequired: 'DLP configuration screenshot; retention label inventory; eDiscovery case export.',
+      testReference: 'Compliance center data lifecycle reports',
+    };
+  }
+  if (cat.includes('file') || cat.includes('storage') || cat.includes('drive')) {
+    return {
+      testProcedure:
+        'Confirm ' + consoleLabel + ' file access scopes apply only to approved document libraries/shared drives. Validate sharing links and external sharing settings restrict data reachable via this scope.',
+      evidenceRequired: 'File/folder sharing audit export; external sharing config screenshot; document inventory.',
+      testReference: 'File access audit log; sharing settings report',
+    };
+  }
+  if (cat.includes('device')) {
+    return {
+      testProcedure:
+        'Confirm ' + consoleLabel + ' device management scopes are enabled and devices report compliance. Validate enrollment, patching, and conditional access for managed devices.',
+      evidenceRequired: 'Device compliance report export; enrollment/patch status screenshot; conditional access policy.',
+      testReference: 'Device compliance dashboard; Intune/device reports',
+    };
+  }
+  if (cat.includes('logging') || cat.includes('monitor') || cat.includes('audit')) {
+    return {
+      testProcedure:
+        'Verify audit log collection is enabled and that this scope is used to stream/read logs into the SIEM. Confirm retention period and that log content integrity is protected.',
+      evidenceRequired: 'SIEM ingestion log; audit log retention setting screenshot; sample audit event export.',
+      testReference: 'Unified audit log; SIEM connector status',
+    };
+  }
+  if (cat.includes('security') || cat.includes('incident')) {
+    return {
+      testProcedure:
+        'Confirm security/incident handling scope is granted to sanctioned security tooling. Verify alert rules, detection coverage, and that incidents are routed to the incident response process.',
+      evidenceRequired: 'Security alert/ detection screenshot; IR runbook export; incident ticket reference.',
+      testReference: 'Security center detection report; IR register',
+    };
+  }
+  if (cat.includes('business continuity') || cat.includes('continuity')) {
+    return {
+      testProcedure:
+        'Confirm backup/restore and continuity scopes cover production SaaS data. Validate backup frequency, restore testing, and RTO/RPO alignment.',
+      evidenceRequired: 'Backup job report; restore test result export; BCP/DRP review minutes.',
+      testReference: 'Backup & restore testing schedule; BCDR plan',
+    };
+  }
+  if (cat.includes('cloud') || cat.includes('infrastructure')) {
+    return {
+      testProcedure:
+        'Confirm ' + consoleLabel + ' infrastructure/config scopes are limited to sanctioned admins. Validate change management, secure baseline configuration, and vulnerability monitoring.',
+      evidenceRequired: 'Admin permission matrix; change approval records; baseline configuration screenshot.',
+      testReference: 'Change management register; configuration baseline',
+    };
+  }
+  if (cat.includes('team') || cat.includes('collaboration') || cat.includes('chat')) {
+    return {
+      testProcedure:
+        'Confirm collaboration scopes align to acceptable-use policy. Validate that channels, chat retention, and external sharing reflect sanctioned collaboration boundaries.',
+      evidenceRequired: 'Collaboration usage report; chat retention/label conformance; external sharing restriction screenshot.',
+      testReference: 'Acceptable-use policy; collaboration admin report',
+    };
+  }
+  return {
+    testProcedure:
+      'Inspect ' + consoleLabel + ' and confirm this scope is granted only to approved applications for legitimate business use. Document the business justification and periodic revalidation.',
+    evidenceRequired: 'Permission grant review export; business justification; approval sign-off.',
+    testReference: 'Permission grant review register',
+  };
+}
+
 function buildJustification(
   scopeDisplayName: string,
   provider: string,
@@ -1751,8 +1847,9 @@ export async function seedScopes(prisma: PrismaClient): Promise<void> {
   console.log('Inserting ' + allScopes.length + ' OAuth scopes...');
 
   const insertedScopes = await prisma.$transaction(
-    allScopes.map((s) =>
-      prisma.scope.create({
+    allScopes.map((s) => {
+      const test = buildTestData(s.category, s.provider, s.accessLevel);
+      return prisma.scope.create({
         data: {
           provider: s.provider,
           scopeId: s.scopeId,
@@ -1761,9 +1858,12 @@ export async function seedScopes(prisma: PrismaClient): Promise<void> {
           category: s.category,
           adminConsentRequired: s.adminConsentRequired,
           accessLevel: s.accessLevel,
+          testProcedure: test.testProcedure,
+          evidenceRequired: test.evidenceRequired,
+          testReference: test.testReference,
         },
-      }),
-    ),
+      });
+    }),
   );
 
   console.log('Inserted ' + insertedScopes.length + ' scopes successfully.');
