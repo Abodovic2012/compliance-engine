@@ -94,7 +94,7 @@ export function buildPlatformCoverage(controls: ControlInput[]): PlatformCoverag
     let controlsWithScope = 0;
     let totalScopeMappings = 0;
     const categoryMap = new Map<string, { mappings: number; controls: Set<string> }>();
-    const scopeMap = new Map<string, { controls: Set<string> }>();
+    const scopeMap = new Map<string, { controls: Set<string>; scopeId: string; displayName: string; provider: string }>();
     const riskDist: RiskDistribution = { critical: 0, high: 0, medium: 0, low: 0 };
 
     for (const c of fwControls) {
@@ -110,7 +110,7 @@ export function buildPlatformCoverage(controls: ControlInput[]): PlatformCoverag
         cat.controls.add(c.id);
         categoryMap.set(m.scope.category, cat);
 
-        const sp = scopeMap.get(m.scope.id) ?? { controls: new Set<string>() };
+        const sp = scopeMap.get(m.scope.id) ?? { controls: new Set<string>(), scopeId: m.scope.scopeId, displayName: m.scope.displayName, provider: m.scope.provider };
         sp.controls.add(c.id);
         scopeMap.set(m.scope.id, sp);
       }
@@ -130,19 +130,14 @@ export function buildPlatformCoverage(controls: ControlInput[]): PlatformCoverag
       .sort((a, b) => b.mappings - a.mappings || a.category.localeCompare(b.category));
 
     const topScopes: TopScope[] = [...scopeMap.entries()]
-      .map(([id, v]) => {
-        const firstMapping = fwControls
-          .flatMap((c) => c.scopeMappings)
-          .find((m) => m.scope.id === id);
-        return {
-          scopeId: id,
-          displayName: firstMapping?.scope.displayName ?? id,
-          provider: firstMapping?.scope.provider ?? "",
+      .map(([, v]) => ({
+          scopeId: v.scopeId,
+          displayName: v.displayName,
+          provider: v.provider,
           controlsCovered: v.controls.size,
           coveragePercent:
             total === 0 ? 0 : Math.round((v.controls.size / total) * 100),
-        };
-      })
+        }))
       .sort((a, b) => b.controlsCovered - a.controlsCovered)
       .slice(0, 8);
 
