@@ -10,6 +10,7 @@ const links = [
   { href: "/frameworks", label: "Frameworks", icon: "book" },
   { href: "/mappings", label: "Mappings", icon: "link" },
   { href: "/evaluate", label: "Evaluate", icon: "check" },
+  { href: "/scopes", label: "Scopes", icon: "shield" },
   { href: "/generate", label: "Generate", icon: "document" },
   { href: "/reports", label: "Reports", icon: "chart" },
 ];
@@ -53,7 +54,7 @@ export function Nav() {
 
 function Icon({ name }: { name: string }) {
   const icons: Record<string, string> = {
-    grid: "▦", database: "🗄", book: "📖", link: "🔗", check: "✓", document: "📄", chart: "📊",
+    grid: "▦", database: "🗄", book: "📖", link: "🔗", check: "✓", shield: "🛡", document: "📄", chart: "📊",
   };
   return <span className="w-5 text-center">{icons[name] || "○"}</span>;
 }

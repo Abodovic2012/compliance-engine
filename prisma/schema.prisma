@@ -29,13 +29,14 @@ model Framework {
 }
 
 model Control {
-  id          String    @id @default(cuid())
+  id          String         @id @default(cuid())
   frameworkId String
-  framework   Framework @relation(fields: [frameworkId], references: [id])
+  framework   Framework      @relation(fields: [frameworkId], references: [id])
   ref         String
   theme       String
   description String
   mappings    Mapping[]
+  scopeMappings ScopeMapping[]
 }
 
 model Mapping {
@@ -58,4 +59,32 @@ model Mapping {
   updatedAt        DateTime  @updatedAt
 
   @@unique([dataItemId, controlId])
+}
+
+model Scope {
+  id                String         @id @default(cuid())
+  provider          String
+  scopeId           String
+  displayName       String
+  description       String
+  category          String
+  adminConsentRequired Boolean @default(false)
+  accessLevel       String         @default("read")
+  mappings          ScopeMapping[]
+  createdAt         DateTime       @default(now())
+
+  @@unique([provider, scopeId])
+}
+
+model ScopeMapping {
+  id          String   @id @default(cuid())
+  scopeId     String
+  scope       Scope    @relation(fields: [scopeId], references: [id])
+  controlId   String
+  control     Control  @relation(fields: [controlId], references: [id])
+  justification String
+  riskLevel   String   @default("medium")
+  createdAt   DateTime @default(now())
+
+  @@unique([scopeId, controlId])
 }

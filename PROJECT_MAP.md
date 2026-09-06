@@ -58,7 +58,8 @@ Browser (Next.js SSR)
 compliance-app/
 ├── prisma/
 │   ├── schema.prisma          # DataItem, Framework, Control, Mapping
-│   ├── seed.ts                # 15 frameworks, 667 controls, 134 items, 922 mappings
+│   ├── seed.ts                # 15 frameworks, 667 controls, 134 items, 922 mappings (+ calls seedScopes)
+│   ├── scopes-seed.ts         # 169 OAuth scopes + 7,682 scope-to-control mappings
 │   └── dev.db                 # SQLite database (seeded)
 ├── src/
 │   ├── lib/
@@ -70,6 +71,8 @@ compliance-app/
 │   ├── app/
 │   │   ├── layout.tsx             # Root layout + sidebar nav
 │   │   ├── nav.tsx                # Navigation component
+│   │   ├── scopes/
+│   │   │   └── page.tsx           # OAuth scopes explorer (Google Workspace + MS Graph)
 │   │   ├── globals.css            # Tailwind + custom styles
 │   │   ├── page.tsx               # Dashboard (stats + quick actions)
 │   │   ├── data-items/
@@ -95,6 +98,7 @@ compliance-app/
 │   │       ├── frameworks/route.ts          # GET
 │   │       ├── frameworks/[id]/controls/    # GET (framework + controls)
 │   │       ├── mappings/route.ts            # GET (filterable)
+│   │       ├── scopes/route.ts              # GET (filterable scopes + control mappings)
 │   │       ├── evaluate/route.ts            # POST (compliance check)
 │   │       ├── generate/
 │   │       │   └── docx/route.ts            # POST (DOCX generation)
@@ -114,6 +118,9 @@ Control (id, frameworkId, ref, theme, description)
 Mapping (id, dataItemId, controlId, justification, severity,
          slaThreshold, findingType, remediation, evidenceRequired,
          region, supplyChainFlag, kevOverride, testId)
+Scope (id, provider, scopeId, displayName, description, category,
+       adminConsentRequired, accessLevel)
+ScopeMapping (id, scopeId, controlId, justification, riskLevel)
 ```
 
 ---
@@ -167,10 +174,11 @@ Mapping (id, dataItemId, controlId, justification, severity,
 
 | Item | Status | Notes |
 |---|---|---|
-| All content seeded | ✅ DONE | 15 frameworks, 667 controls, 134 data items, 922 mappings |
-| All APIs built | ✅ DONE | CRUD + evaluate + compliance + gap reports |
-| Frontend complete | ✅ DONE | 7 pages: Dashboard, Data Items, Frameworks, Mappings, Evaluate, Policies, Reports |
+| All content seeded | ✅ DONE | 15 frameworks, 667 controls, 134 data items, 922 mappings + 169 OAuth scopes, 7,682 scope mappings |
+| All APIs built | ✅ DONE | CRUD + evaluate + compliance + gap reports + scopes |
+| Frontend complete | ✅ DONE | 8 pages: Dashboard, Data Items, Frameworks, Mappings, Evaluate, Scopes, Generate, Policies, Reports |
 | Build passes | ✅ DONE | `npm run build` → compiled + type-checked |
+| OAuth Scopes Explorer | ✅ DONE | Google Workspace + Microsoft Graph scopes mapped to framework controls |
 | Auth / SSO | 📋 Phase 2 | Not in MVP scope |
 | Multi-tenant | 📋 Phase 2 | Row-level security ready in schema |
 | Connectors (IdP, CSP) | 📋 Phase 2 | API-first design allows connectors |
@@ -191,7 +199,8 @@ Mapping (id, dataItemId, controlId, justification, severity,
 | **M6** | Reporting | ✅ Compliance summary + gap analysis |
 | **M7** | Policy Generator | ✅ Company-specific policy suite with 18 sub-policies per framework |
 | **M8** | DOCX Export | ✅ Server-side .docx generation via `docx` package |
-| **M9** | Auth + Multi-tenant | 📋 Phase 2 |
+| **M9** | OAuth Scopes Explorer | ✅ 169 scopes (Google Workspace + Microsoft Graph) mapped to 7,682 framework controls |
+| **M10** | Auth + Multi-tenant | 📋 Phase 2 |
 
 ---
 
