@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { FrameworkBreakdown } from "./framework-breakdown";
 
 interface ScopeControl {
   id: string;
@@ -90,6 +91,7 @@ function splitEvidence(evidence: string | null): string[] {
 }
 
 export default function ScopesPage() {
+  const [tab, setTab] = useState<"permission" | "framework">("permission");
   const [scopes, setScopes] = useState<Scope[]>([]);
   const [categories, setCategories] = useState<CategoryAgg[]>([]);
   const [provider, setProvider] = useState("");
@@ -148,10 +150,36 @@ export default function ScopesPage() {
       <h1 className="text-2xl font-bold mb-1">OAuth Scopes</h1>
       <p className="text-sm text-slate-500 mb-6">
         Google Workspace &amp; Microsoft 365 / Graph permissions, mapped to framework controls.
-        Expand any permission to see how much of each framework it covers and how to verify it for audit.
       </p>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 flex flex-wrap gap-4 items-end">
+      <div className="bg-white rounded-xl border border-slate-200 p-1 mb-6 inline-flex gap-1 shadow-sm">
+        <button
+          onClick={() => setTab("permission")}
+          className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+            tab === "permission"
+              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          By permission
+        </button>
+        <button
+          onClick={() => setTab("framework")}
+          className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+            tab === "framework"
+              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          By framework
+        </button>
+      </div>
+
+      {tab === "framework" ? (
+        <FrameworkBreakdown />
+      ) : (
+        <>
+          <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 flex flex-wrap gap-4 items-end">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Provider</label>
           <select
@@ -434,6 +462,8 @@ export default function ScopesPage() {
             );
           })}
         </div>
+      )}
+        </>
       )}
     </div>
   );

@@ -69,13 +69,15 @@ compliance-app/
 |  |  |- scoring.ts             # Scorecard engine: % per framework + weak points (checklist/inventory)
 |  |  |- assessment.ts          # Scope -> ScopeWithData mapping + report builder
 |  |  |- coverage.ts            # Per-scope framework coverage % (controls covered / framework total)
+|  |  |- platform-coverage.ts   # Per-framework breakdown: scope-only coverage %, categories, top scopes, risk dist
 |  |- components/
 |  |  |- print-button.tsx       # Client-side print button
 |  |- app/
 |  |  |- layout.tsx             # Root layout + sidebar nav
 |  |  |- nav.tsx                # Navigation component
 |  |  |- scopes/
-|  |  |  |- page.tsx            # OAuth scopes explorer + per-scope coverage % + evidence/compliance check
+|  |  |  |- page.tsx            # OAuth scopes explorer + per-scope coverage % + evidence/compliance check (By permission tab)
+|  |  |  |- framework-breakdown.tsx # By framework tab: per-framework scope-only %, donuts, categories, top scopes
 |  |  |- assessment/
 |  |  |  |- page.tsx            # Interactive scorecard (checklist + inventory, weak points, %)
 |  |  |- globals.css            # Tailwind + custom styles
@@ -104,6 +106,7 @@ compliance-app/
 |  |     |- frameworks/[id]/controls/    # GET (framework + controls)
 |  |     |- mappings/route.ts            # GET (filterable)
 |  |     |- scopes/route.ts              # GET (filterable scopes + framework coverage %)
+|  |     |- scopes/platform-coverage/route.ts # GET (per-framework scope-only breakdown)
 |  |     |- scopes/assessment/route.ts   # GET/POST (user assessment states per mode)
 |  |     |- assessment/report/route.ts   # GET (scorecard: per-framework % + weak points + scopes)
 |  |     |- evaluate/route.ts            # POST (compliance check)
@@ -189,6 +192,7 @@ ScopeAssessment (id, scopeId, mode, state, notes, evidence, updatedAt)
 | OAuth Scopes Explorer | DONE | Google Workspace + Microsoft Graph scopes mapped to framework controls |
 | Compliance Scorecard | DONE | Checklist + inventory modes, per-framework %, weak points, audit test/evidence per scope |
 | Per-scope coverage impact | DONE | Each permission shows % of each framework covered + interactive evidence collection / compliance check |
+| Framework breakdown (By Framework tab) | DONE | Per-framework scope-only coverage %, donut charts, categories, top permissions, risk distribution |
 | Auth / SSO | Phase 2 | Not in MVP scope |
 | Multi-tenant | Phase 2 | Row-level security ready in schema |
 | Connectors (IdP, CSP) | Phase 2 | API-first design allows connectors |
@@ -212,7 +216,8 @@ ScopeAssessment (id, scopeId, mode, state, notes, evidence, updatedAt)
 | **M9** | OAuth Scopes Explorer | 169 scopes (Google Workspace + Microsoft Graph) mapped to 7,682 framework controls |
 | **M10** | Compliance Scorecard | Checklist + inventory assessment, per-framework % + weak points, audit test/evidence guidance |
 | **M11** | Per-scope Coverage Impact | Each permission shows controls covered, % of each framework, interactive evidence compliance check |
-| **M12** | Auth + Multi-tenant | Phase 2 |
+| **M12** | Framework Breakdown | By Framework tab: per-framework scope-only %, donuts, categories, top scopes, risk distribution |
+| **M13** | Auth + Multi-tenant | Phase 2 |
 
 ---
 
