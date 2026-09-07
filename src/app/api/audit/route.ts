@@ -10,8 +10,17 @@ export async function GET() {
       select: { id: true, name: true, version: true, region: true },
       orderBy: { name: "asc" },
     });
+    const areas = await prisma.control.findMany({
+      select: { auditArea: true },
+      where: { auditArea: { not: null } },
+      distinct: ["auditArea"],
+    });
 
-    return Response.json({ controls, frameworks });
+    return Response.json({
+      controls,
+      frameworks,
+      areas: areas.map((a) => a.auditArea).sort(),
+    });
   } catch (error) {
     logger.error("Failed to fetch audit controls", { error: String(error) });
     return Response.json({ error: "Internal server error" }, { status: 500 });

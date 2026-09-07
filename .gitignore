@@ -48,4 +48,4 @@ public/data/dev.db-journal
 next-env.d.ts
 
 # server logs
-server.log*
+server*.log

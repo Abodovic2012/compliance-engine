@@ -9,6 +9,8 @@ export interface AuditControlRecord {
   ref: string;
   theme: string;
   description: string;
+  auditArea: string | null;
+  auditScope: string | null;
   auditProcedure: string | null;
   evidenceRequired: string | null;
   auditTestRef: string | null;
@@ -20,6 +22,11 @@ export interface AuditControlRecord {
     findingType: string;
     dataItem: { name: string };
   }[];
+  scopeRefs: {
+    provider: string;
+    scopeId: string;
+    displayName: string;
+  }[];
 }
 
 export async function fetchAuditControls(): Promise<AuditControlRecord[]> {
@@ -27,6 +34,7 @@ export async function fetchAuditControls(): Promise<AuditControlRecord[]> {
     include: {
       framework: { select: { id: true, name: true, version: true, region: true } },
       audit: true,
+      scopeRefs: { select: { provider: true, scopeId: true, displayName: true } },
       mappings: {
         select: {
           severity: true,
@@ -43,6 +51,8 @@ export async function fetchAuditControls(): Promise<AuditControlRecord[]> {
     ref: c.ref,
     theme: c.theme,
     description: c.description,
+    auditArea: c.auditArea,
+    auditScope: c.auditScope,
     auditProcedure: c.auditProcedure,
     evidenceRequired: c.evidenceRequired,
     auditTestRef: c.auditTestRef,
@@ -55,6 +65,11 @@ export async function fetchAuditControls(): Promise<AuditControlRecord[]> {
       severity: m.severity,
       findingType: m.findingType,
       dataItem: { name: m.dataItem.label },
+    })),
+    scopeRefs: c.scopeRefs.map((s) => ({
+      provider: s.provider,
+      scopeId: s.scopeId,
+      displayName: s.displayName,
     })),
   }));
 }

@@ -1,4 +1,11 @@
 import { PrismaClient } from "@prisma/client";
+import {
+  GOOGLE_WORKSPACE_SCOPES,
+  MS_GRAPH_SCOPES,
+  CATEGORY_THEME_MAP,
+} from "./scope-catalog";
+
+const ALL_SCOPES = [...GOOGLE_WORKSPACE_SCOPES, ...MS_GRAPH_SCOPES];
 
 export async function seedControlAudits(prisma: PrismaClient): Promise<void> {
   console.log("Starting control audit seed...");
@@ -32,6 +39,70 @@ export async function seedControlAudits(prisma: PrismaClient): Promise<void> {
   }
 
   console.log("Seeded audit guidance + default audits for " + updated + " controls.");
+}
+
+export function matchAuditArea(theme: string): { area: string; keywords: number } {
+  const t = theme.toLowerCase();
+  let best: { area: string; keywords: number } = { area: "Security Governance", keywords: 0 };
+  for (const map of CATEGORY_THEME_MAP) {
+    const hits = map.keywords.filter((kw) => t.includes(kw.toLowerCase())).length;
+    if (hits > best.keywords) {
+      best = { area: map.category, keywords: hits };
+    }
+  }
+  return best;
+}
+
+export async function seedControlScopeRefs(prisma: PrismaClient): Promise<void> {
+  console.log("Starting control scope refs seed...");
+
+  console.log("Deleting existing ControlScopeRef records...");
+  await prisma.controlScopeRef.deleteMany();
+
+  const controls = await prisma.control.findMany();
+  console.log("Found " + controls.length + " controls for scope ref mapping.");
+
+  let refs = 0;
+  let updated = 0;
+  for (const control of controls) {
+    const { area } = matchAuditArea(control.theme);
+
+    const matchingScopes = ALL_SCOPES.filter((s) => s.category === area);
+    const providers = [...new Set(matchingScopes.map((s) => s.provider))];
+    const auditScope = describeAuditScope(area, providers);
+
+    if (matchingScopes.length > 0) {
+      await prisma.control.update({
+        where: { id: control.id },
+        data: {
+          auditArea: area,
+          auditScope,
+        },
+      });
+      await prisma.controlScopeRef.createMany({
+        data: matchingScopes.map((s) => ({
+          controlId: control.id,
+          provider: s.provider,
+          scopeId: s.scopeId,
+          displayName: s.displayName,
+        })),
+      });
+      refs += matchingScopes.length;
+      updated += 1;
+    }
+  }
+
+  console.log("Seeded " + refs + " scope refs across " + updated + " controls.");
+}
+
+export function describeAuditScope(area: string, providers: string[]): string {
+  const providerNames = providers
+    .map((p) => (p === "google" ? "Google Workspace" : "Microsoft 365 / Graph"))
+    .filter(Boolean);
+  const unique = [...new Set(providerNames)];
+  if (unique.length === 0) return area;
+  if (unique.length === 1) return area + " (" + unique[0] + ")";
+  return area + " (Google Workspace + Microsoft 365 / Graph)";
 }
 
 export function buildAuditGuide(
@@ -152,6 +223,7 @@ export async function seedControlAuditsStandalone(): Promise<void> {
   const client = new PrismaClient();
   try {
     await seedControlAudits(client);
+    await seedControlScopeRefs(client);
   } finally {
     await client.$disconnect();
   }

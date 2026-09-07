@@ -39,6 +39,7 @@ Browser (Next.js SSR)
    667 Controls
    922 Mappings
    667 ControlAudits (audit status per control)
+   5,519 ControlScopeRefs (permission-name context per control, across 381 controls / 12 audit areas)
 ```
 
 ### Data Flow
@@ -56,9 +57,10 @@ Browser (Next.js SSR)
 ```
 compliance-app/
 |- prisma/
-|  |- schema.prisma          # DataItem, Framework, Control (+audit fields), Mapping, ControlAudit
-|  |- seed.ts                # 15 frameworks, 667 controls, 134 items, 922 mappings (+ calls seedControlAudits)
-|  |- audit-seed.ts          # Per-control audit procedure / evidence guidance + default notstarted audits (667)
+|  |- schema.prisma          # DataItem, Framework, Control (+audit fields), Mapping, ControlAudit, ControlScopeRef
+|  |- seed.ts                # 15 frameworks, 667 controls, 134 items, 922 mappings (+ calls seedControlAudits + seedControlScopeRefs)
+|  |- audit-seed.ts          # Per-control audit guidance + default audits (667) + audit area / scope ref mapping (5,519 refs)
+|  |- scope-catalog.ts       # Permission-name catalog (Google Workspace + Microsoft Graph) + category/theme keyword map
 |  |- dev.db                 # SQLite database (seeded)
 |- src/
 |  |- lib/
@@ -75,7 +77,7 @@ compliance-app/
 |  |  |- layout.tsx             # Root layout + sidebar nav
 |  |  |- nav.tsx                # Navigation component
 |  |  |- audit/
-|  |  |  |- page.tsx            # Audit assessment: By control (filterable checklists + evidence capture) + Framework breakdown tab
+|  |  |  |- page.tsx            # Audit assessment: By control (filter by framework/area/theme/status, scope-name chips) + Framework breakdown tab
 |  |  |- assessment/
 |  |  |  |- page.tsx            # Scorecard: overall donut, per-framework %, weak points, expandable breakdown
 |  |  |- globals.css            # Tailwind + custom styles
@@ -103,7 +105,7 @@ compliance-app/
 |  |     |- frameworks/route.ts          # GET
 |  |     |- frameworks/[id]/controls/    # GET (framework + controls)
 |  |     |- mappings/route.ts            # GET (filterable)
-|  |     |- audit/route.ts               # GET (controls + audit state) / PUT (upsert audit status/evidence/notes)
+|  |     |- audit/route.ts               # GET (controls + audit state + audit areas) / PUT (upsert audit status/evidence/notes)
 |  |     |- audit/report/route.ts        # GET (scorecard + framework breakdown)
 |  |     |- evaluate/route.ts            # POST (compliance check)
 |  |     |- generate/
@@ -120,7 +122,8 @@ compliance-app/
 DataItem (id, key, label, description, category, domain)
 Framework (id, name, version, region)
 Control (id, frameworkId, ref, theme, description, auditProcedure,
-         evidenceRequired, auditTestRef)
+         evidenceRequired, auditTestRef, auditArea, auditScope)
+ControlScopeRef (id, controlId, provider, scopeId, displayName)
 Mapping (id, dataItemId, controlId, justification, severity,
          slaThreshold, findingType, remediation, evidenceRequired,
          region, supplyChainFlag, kevOverride, testId)
@@ -186,6 +189,7 @@ ControlAudit (id, controlId (unique), status [compliant/partial/noncompliant/not
 | Audit-based scoring | DONE | Replace OAuth scopes: per-control audit status + evidence leads to framework % + weak points |
 | Framework breakdown | DONE | Per-framework mapping coverage %, categories, weak controls, risk distribution |
 | OAuth scopes removed | DONE | Scope/ScopeMapping/ScopeAssessment models, seeds, APIs, and pages fully removed |
+| Audit scopes restored | DONE | Permission names per control restored as reference context + audit area / audit scope fields + area filter (5,519 refs) |
 | Auth / SSO | Phase 2 | Not in MVP scope |
 | Multi-tenant | Phase 2 | Row-level security ready in schema |
 | Connectors (IdP, CSP) | Phase 2 | API-first design allows connectors |
@@ -210,7 +214,8 @@ ControlAudit (id, controlId (unique), status [compliant/partial/noncompliant/not
 | **M10** | Compliance Scorecard | Overall donut + per-framework health + weak controls, powered by audit data |
 | **M11** | Framework Breakdown | Per-framework mapping coverage %, categories, weak controls, risk distribution |
 | **M12** | OAuth Scopes Removed | Scope/ScopeMapping/ScopeAssessment models, seeds, APIs, and pages fully removed |
-| **M13** | Auth + Multi-tenant | Phase 2 |
+| **M13** | Audit Scopes Restored | Permission names per control as reference context + audit area/scope fields + area filter (5,519 refs) |
+| **M14** | Auth + Multi-tenant | Phase 2 |
 
 ---
 

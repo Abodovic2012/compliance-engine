@@ -29,17 +29,31 @@ model Framework {
 }
 
 model Control {
-  id               String        @id @default(cuid())
+  id               String            @id @default(cuid())
   frameworkId      String
-  framework        Framework     @relation(fields: [frameworkId], references: [id])
+  framework        Framework         @relation(fields: [frameworkId], references: [id])
   ref              String
   theme            String
   description      String
   auditProcedure   String?
   evidenceRequired String?
   auditTestRef     String?
+  auditArea        String?
+  auditScope       String?
   mappings         Mapping[]
+  scopeRefs        ControlScopeRef[]
   audit            ControlAudit?
+}
+
+model ControlScopeRef {
+  id          String   @id @default(cuid())
+  controlId   String
+  control     Control  @relation(fields: [controlId], references: [id])
+  provider    String
+  scopeId     String
+  displayName String
+
+  @@unique([controlId, scopeId])
 }
 
 model Mapping {

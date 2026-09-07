@@ -10,6 +10,8 @@ interface AuditControl {
   ref: string;
   theme: string;
   description: string;
+  auditArea: string | null;
+  auditScope: string | null;
   auditProcedure: string | null;
   evidenceRequired: string | null;
   auditTestRef: string | null;
@@ -17,6 +19,7 @@ interface AuditControl {
   audit: { status: string; evidence: string | null; notes: string | null } | null;
   mappingsCount: number;
   mappings: { severity: string; findingType: string; dataItem: { name: string } }[];
+  scopeRefs: { provider: string; scopeId: string; displayName: string }[];
 }
 
 interface FrameworkScore {
@@ -133,10 +136,12 @@ export default function AuditPage() {
   const [tab, setTab] = useState<Tab>("assessment");
   const [controls, setControls] = useState<AuditControl[]>([]);
   const [frameworks, setFrameworks] = useState<{ id: string; name: string }[]>([]);
+  const [areas, setAreas] = useState<string[]>([]);
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [frameworkFilter, setFrameworkFilter] = useState("all");
+  const [areaFilter, setAreaFilter] = useState("all");
   const [themeFilter, setThemeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -166,6 +171,7 @@ export default function AuditPage() {
         if (data.error) throw new Error(data.error);
         setControls(data.controls);
         setFrameworks(data.frameworks);
+        setAreas(data.areas);
         return data;
       })
       .then(() => loadReport())
@@ -193,7 +199,10 @@ export default function AuditPage() {
       fetch("/api/audit")
         .then((r) => r.json())
         .then((data) => {
-          if (!data.error) setControls(data.controls);
+          if (!data.error) {
+            setControls(data.controls);
+            setAreas(data.areas);
+          }
         })
         .catch(() => {});
     } catch {
@@ -209,12 +218,15 @@ export default function AuditPage() {
 
   const filtered = controls.filter((c) => {
     if (frameworkFilter !== "all" && c.framework.id !== frameworkFilter) return false;
+    if (areaFilter !== "all" && c.auditArea !== areaFilter) return false;
     if (themeFilter !== "all" && c.theme !== themeFilter) return false;
     const status = c.audit?.status ?? "notstarted";
     if (statusFilter !== "all" && status !== statusFilter) return false;
     if (
       search &&
-      ![c.ref, c.theme, c.description].some((f) => f.toLowerCase().includes(search.toLowerCase()))
+      ![c.ref, c.theme, c.description, c.auditArea ?? "", c.auditScope ?? ""].some((f) =>
+        f.toLowerCase().includes(search.toLowerCase())
+      )
     )
       return false;
     return true;
@@ -290,11 +302,11 @@ export default function AuditPage() {
 
       {tab === "assessment" && (
         <>
-          <div className="bg-white rounded-xl border border-slate-200 p-4 mb-4 grid gap-3 md:grid-cols-4">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 mb-4 grid gap-3 md:grid-cols-5">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search ref, theme, description..."
+              placeholder="Search ref, theme, area, description..."
               className="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <select
@@ -305,6 +317,16 @@ export default function AuditPage() {
               <option value="all">All frameworks</option>
               {frameworks.map((f) => (
                 <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
+            <select
+              value={areaFilter}
+              onChange={(e) => setAreaFilter(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-slate-200 text-sm"
+            >
+              <option value="all">All audit areas</option>
+              {areas.map((a) => (
+                <option key={a} value={a}>{a}</option>
               ))}
             </select>
             <select
@@ -352,6 +374,18 @@ export default function AuditPage() {
                         <span className="text-xs text-slate-400">{c.framework.name}</span>
                       </div>
                       <div className="text-sm text-slate-700 mt-0.5 line-clamp-1">{c.theme}</div>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        {c.auditArea && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                            {c.auditArea}
+                          </span>
+                        )}
+                        {c.auditScope && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium">
+                            Scope: {c.auditScope}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="text-xs text-slate-400">{c.mappingsCount} mappings</span>
@@ -362,6 +396,22 @@ export default function AuditPage() {
                   {expanded[c.id] && (
                     <div className="border-t border-slate-100 px-4 py-3 space-y-3">
                       <p className="text-xs text-slate-600">{c.description}</p>
+                      {c.scopeRefs.length > 0 && (
+                        <div className="bg-slate-50 rounded-lg p-3 text-xs text-slate-600">
+                          <div className="font-medium text-slate-700 mb-1">In-scope permissions</div>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {c.scopeRefs.map((s) => (
+                              <span
+                                key={s.scopeId}
+                                title={s.scopeId}
+                                className="px-2 py-0.5 rounded-md bg-white border border-slate-200 font-mono text-[10px]"
+                              >
+                                {s.displayName}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       {c.auditProcedure && (
                         <div className="bg-slate-50 rounded-lg p-3 text-xs text-slate-600">
                           <div className="font-medium text-slate-700 mb-1">How to test</div>

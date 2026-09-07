@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { seedControlAudits } from "./audit-seed";
+import { seedControlAudits, seedControlScopeRefs } from "./audit-seed";
 
 const prisma = new PrismaClient();
 
@@ -1900,6 +1900,7 @@ async function main() {
   console.log(`Seeded: ${frameworks.length} frameworks, ${createdControls.length} controls, ${dataItems.length} data items, ${mappingDefs.length} mappings`);
 
   await seedControlAudits(prisma);
+  await seedControlScopeRefs(prisma);
 }
 
 main()
