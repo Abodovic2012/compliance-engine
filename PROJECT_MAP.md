@@ -1,6 +1,6 @@
 # Compliance Mapping Engine - PROJECT MAP
 
-> Generated: 2026-06-18 | Updated: 2026-09-06 | Status: **PRODUCTION-READY**
+> Generated: 2026-06-18 | Updated: 2026-09-07 | Status: **PRODUCTION-READY**
 
 ---
 
@@ -29,25 +29,24 @@ Browser (Next.js SSR)
       |         - Frameworks       - /api/mappings
       |         - Mappings         - /api/evaluate
       |         - Evaluate         - /api/reports/*
-      |         - Policies         - /api/scopes
-      |         - Reports          - /api/scopes/assessment
-      |         - Scopes           - /api/assessment/report
-      |         - Scorecard
+      |         - Audit            - /api/audit
+      |         - Scorecard        - /api/audit/report
+      |         - Reports
       |
       v
    Prisma ORM (SQLite)
    134 Data Items
    667 Controls
    922 Mappings
-   169 OAuth Scopes
-   7,682 Scope Mappings
+   667 ControlAudits (audit status per control)
 ```
 
 ### Data Flow
-1. **Browse** - User navigates data items / frameworks / mappings / scopes
+1. **Browse** - User navigates data items / frameworks / mappings
 2. **Evaluate** - User selects item + value, API computes compliance per framework
 3. **Report** - Compliance summary + gap analysis generated
-4. **Scorecard** - User marks permissions in checklist/inventory modes, API computes per-framework % + weak points
+4. **Audit** - User assesses each control (compliant/partial/noncompliant/notstarted) + collects evidence; API computes per-framework %, weak points, breakdown
+5. **Scorecard** - Read-only overall score + per-framework health + weak controls from audit data
 
 ---
 
@@ -57,29 +56,28 @@ Browser (Next.js SSR)
 ```
 compliance-app/
 |- prisma/
-|  |- schema.prisma          # DataItem, Framework, Control, Mapping, Scope, ScopeMapping, ScopeAssessment
-|  |- seed.ts                # 15 frameworks, 667 controls, 134 items, 922 mappings (+ calls seedScopes)
-|  |- scopes-seed.ts         # 169 OAuth scopes + 7,682 scope-to-control mappings + audit test data
+|  |- schema.prisma          # DataItem, Framework, Control (+audit fields), Mapping, ControlAudit
+|  |- seed.ts                # 15 frameworks, 667 controls, 134 items, 922 mappings (+ calls seedControlAudits)
+|  |- audit-seed.ts          # Per-control audit procedure / evidence guidance + default notstarted audits (667)
 |  |- dev.db                 # SQLite database (seeded)
 |- src/
 |  |- lib/
 |  |  |- prisma.ts              # Singleton client
 |  |  |- logger.ts              # Async JSON logger
 |  |  |- policy-taxonomy.ts     # 18 sub-policies, keyword classification
-|  |  |- scoring.ts             # Scorecard engine: % per framework + weak points (checklist/inventory)
-|  |  |- assessment.ts          # Scope -> ScopeWithData mapping + report builder
-|  |  |- coverage.ts            # Per-scope framework coverage % (controls covered / framework total)
-|  |  |- platform-coverage.ts   # Per-framework breakdown: scope-only coverage %, categories, top scopes, risk dist
+|  |  |- audit-scoring.ts       # Audit scorecard engine: % per framework, weak points, overall (compliant/partial/noncompliant/notstarted)
+|  |  |- audit-coverage.ts      # Per-framework breakdown: mapping coverage %, categories, weak controls, risk dist
+|  |  |- audit-report.ts        # Control row -> scorecard/breakdown input mapping + DB pulls
 |  |- components/
 |  |  |- print-button.tsx       # Client-side print button
+|  |  |- audit-viz.tsx          # Donut / segmented donut / animated bar visualisations
 |  |- app/
 |  |  |- layout.tsx             # Root layout + sidebar nav
 |  |  |- nav.tsx                # Navigation component
-|  |  |- scopes/
-|  |  |  |- page.tsx            # OAuth scopes explorer + per-scope coverage % + evidence/compliance check (By permission tab)
-|  |  |  |- framework-breakdown.tsx # By framework tab: per-framework scope-only %, donuts, categories, top scopes
+|  |  |- audit/
+|  |  |  |- page.tsx            # Audit assessment: By control (filterable checklists + evidence capture) + Framework breakdown tab
 |  |  |- assessment/
-|  |  |  |- page.tsx            # Interactive scorecard (checklist + inventory, weak points, %)
+|  |  |  |- page.tsx            # Scorecard: overall donut, per-framework %, weak points, expandable breakdown
 |  |  |- globals.css            # Tailwind + custom styles
 |  |  |- page.tsx               # Dashboard (stats + quick actions)
 |  |  |- data-items/
@@ -105,10 +103,8 @@ compliance-app/
 |  |     |- frameworks/route.ts          # GET
 |  |     |- frameworks/[id]/controls/    # GET (framework + controls)
 |  |     |- mappings/route.ts            # GET (filterable)
-|  |     |- scopes/route.ts              # GET (filterable scopes + framework coverage %)
-|  |     |- scopes/platform-coverage/route.ts # GET (per-framework scope-only breakdown)
-|  |     |- scopes/assessment/route.ts   # GET/POST (user assessment states per mode)
-|  |     |- assessment/report/route.ts   # GET (scorecard: per-framework % + weak points + scopes)
+|  |     |- audit/route.ts               # GET (controls + audit state) / PUT (upsert audit status/evidence/notes)
+|  |     |- audit/report/route.ts        # GET (scorecard + framework breakdown)
 |  |     |- evaluate/route.ts            # POST (compliance check)
 |  |     |- generate/
 |  |     |  |- docx/route.ts            # POST (DOCX generation)
@@ -123,15 +119,13 @@ compliance-app/
 ```
 DataItem (id, key, label, description, category, domain)
 Framework (id, name, version, region)
-Control (id, frameworkId, ref, theme, description)
+Control (id, frameworkId, ref, theme, description, auditProcedure,
+         evidenceRequired, auditTestRef)
 Mapping (id, dataItemId, controlId, justification, severity,
          slaThreshold, findingType, remediation, evidenceRequired,
          region, supplyChainFlag, kevOverride, testId)
-Scope (id, provider, scopeId, displayName, description, category,
-       adminConsentRequired, accessLevel, testProcedure,
-       evidenceRequired, testReference)
-ScopeMapping (id, scopeId, controlId, justification, riskLevel)
-ScopeAssessment (id, scopeId, mode, state, notes, evidence, updatedAt)
+ControlAudit (id, controlId (unique), status [compliant/partial/noncompliant/notstarted],
+              evidence, notes, assessedBy, assessedAt, createdAt)
 ```
 
 ---
@@ -185,14 +179,13 @@ ScopeAssessment (id, scopeId, mode, state, notes, evidence, updatedAt)
 
 | Item | Status | Notes |
 |---|---|---|
-| All content seeded | DONE | 15 frameworks, 667 controls, 134 data items, 922 mappings + 169 OAuth scopes, 7,682 scope mappings |
-| All APIs built | DONE | CRUD + evaluate + compliance + gap reports + scopes + assessment |
-| Frontend complete | DONE | 9 pages: Dashboard, Data Items, Frameworks, Mappings, Evaluate, Scopes, Scorecard, Generate, Policies, Reports |
+| All content seeded | DONE | 15 frameworks, 667 controls, 134 data items, 922 mappings + 667 default control audits |
+| All APIs built | DONE | CRUD + evaluate + compliance + gap reports |
+| Frontend complete | DONE | 9 pages: Dashboard, Data Items, Frameworks, Mappings, Evaluate, Audit, Scorecard, Generate, Reports |
 | Build passes | DONE | `npm run build` - compiled + type-checked |
-| OAuth Scopes Explorer | DONE | Google Workspace + Microsoft Graph scopes mapped to framework controls |
-| Compliance Scorecard | DONE | Checklist + inventory modes, per-framework %, weak points, audit test/evidence per scope |
-| Per-scope coverage impact | DONE | Each permission shows % of each framework covered + interactive evidence collection / compliance check |
-| Framework breakdown (By Framework tab) | DONE | Per-framework scope-only coverage %, donut charts, categories, top permissions, risk distribution |
+| Audit-based scoring | DONE | Replace OAuth scopes: per-control audit status + evidence leads to framework % + weak points |
+| Framework breakdown | DONE | Per-framework mapping coverage %, categories, weak controls, risk distribution |
+| OAuth scopes removed | DONE | Scope/ScopeMapping/ScopeAssessment models, seeds, APIs, and pages fully removed |
 | Auth / SSO | Phase 2 | Not in MVP scope |
 | Multi-tenant | Phase 2 | Row-level security ready in schema |
 | Connectors (IdP, CSP) | Phase 2 | API-first design allows connectors |
@@ -213,10 +206,10 @@ ScopeAssessment (id, scopeId, mode, state, notes, evidence, updatedAt)
 | **M6** | Reporting | Compliance summary + gap analysis |
 | **M7** | Policy Generator | Company-specific policy suite with 18 sub-policies per framework |
 | **M8** | DOCX Export | Server-side .docx generation via `docx` package |
-| **M9** | OAuth Scopes Explorer | 169 scopes (Google Workspace + Microsoft Graph) mapped to 7,682 framework controls |
-| **M10** | Compliance Scorecard | Checklist + inventory assessment, per-framework % + weak points, audit test/evidence guidance |
-| **M11** | Per-scope Coverage Impact | Each permission shows controls covered, % of each framework, interactive evidence compliance check |
-| **M12** | Framework Breakdown | By Framework tab: per-framework scope-only %, donuts, categories, top scopes, risk distribution |
+| **M9** | Audit-based Scoring | Rebuilt feature: per-control audit status + evidence, framework %, weak points (replaces OAuth scopes) |
+| **M10** | Compliance Scorecard | Overall donut + per-framework health + weak controls, powered by audit data |
+| **M11** | Framework Breakdown | Per-framework mapping coverage %, categories, weak controls, risk distribution |
+| **M12** | OAuth Scopes Removed | Scope/ScopeMapping/ScopeAssessment models, seeds, APIs, and pages fully removed |
 | **M13** | Auth + Multi-tenant | Phase 2 |
 
 ---
@@ -229,6 +222,6 @@ npm install          # already done
 npx prisma generate  # already done
 npx prisma db seed   # already done
 npm run dev          # -> http://localhost:3000
-npm run build        # production build (resets DB + reseeds scopes)
+npm run build        # production build (resets DB + reseeds audit data)
 npm start            # production server
 ```

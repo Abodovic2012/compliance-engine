@@ -46,3 +46,6 @@ public/data/dev.db-journal
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# server logs
+server.log*
