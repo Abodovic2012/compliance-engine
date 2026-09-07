@@ -59,7 +59,7 @@ compliance-app/
 |- prisma/
 |  |- schema.prisma          # DataItem, Framework, Control (+audit fields), Mapping, ControlAudit, ControlScopeRef
 |  |- seed.ts                # 15 frameworks, 667 controls, 134 items, 922 mappings (+ calls seedControlAudits + seedControlScopeRefs)
-|  |- audit-seed.ts          # Per-control audit guidance + default audits (667) + audit area / scope ref mapping (5,519 refs)
+|  |- audit-seed.ts          # Per-control audit guidance + idempotent audit seeding (demo baseline; preserves saved statuses) + scope ref mapping (5,519 refs)
 |  |- scope-catalog.ts       # Permission-name catalog (Google Workspace + Microsoft Graph) + category/theme keyword map
 |  |- dev.db                 # SQLite database (seeded)
 |- src/
@@ -215,7 +215,8 @@ ControlAudit (id, controlId (unique), status [compliant/partial/noncompliant/not
 | **M11** | Framework Breakdown | Per-framework mapping coverage %, categories, weak controls, risk distribution |
 | **M12** | OAuth Scopes Removed | Scope/ScopeMapping/ScopeAssessment models, seeds, APIs, and pages fully removed |
 | **M13** | Audit Scopes Restored | Permission names per control as reference context + audit area/scope fields + area filter (5,519 refs) |
-| **M14** | Auth + Multi-tenant | Phase 2 |
+| **M14** | Non-destructive rebuilds | Idempotent seed + demo baseline; `npm run build` no longer wipes saved audit statuses |
+| **M15** | Auth + Multi-tenant | Phase 2 |
 
 ---
 
@@ -227,6 +228,7 @@ npm install          # already done
 npx prisma generate  # already done
 npx prisma db seed   # already done
 npm run dev          # -> http://localhost:3000
-npm run build        # production build (resets DB + reseeds audit data)
+npm run build        # production build (applies migrations, idempotent seed, does NOT wipe audit data)
+npm run db:reset     # full DB reset (wipes audit data + reseeds demo baseline)
 npm start            # production server
 ```

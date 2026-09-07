@@ -24,9 +24,11 @@ async function main() {
     { name: "IACS E27", version: "UR E27", region: "GLB-MAR" },
   ];
 
-  const frameworks = await Promise.all(
-    frameworkDefs.map((d) => prisma.framework.create({ data: d }))
-  );
+  const frameworks: { id: string; name: string }[] = [];
+  for (const d of frameworkDefs) {
+    const found = await prisma.framework.findFirst({ where: { name: d.name } });
+    frameworks.push(found ?? (await prisma.framework.create({ data: d })));
+  }
   const f = Object.fromEntries(frameworks.map((fw) => [fw.name, fw.id]));
 
   const controlDefs: [string, string, string, string][] = [
@@ -725,11 +727,15 @@ async function main() {
     ["IACS E27","E27-24","Secure Development Lifecycle","IACS UR E27 (Rev.1 Sep 2023), derived from IEC 62443-3-3, requires secure development lifecycle across all sdlc phases. This security capability shall be implemented by equipment manufacturers and system integrators for all Computer-Based Systems (CBS) within the scope of UR E26 on vessels contracted for construction on or after 1 July 2024. The CBS supplier shall demonstrate conformance through design documentation, security capability testing, and type approval certification. Each CBS shall meet the 30 core security capabilities defined in UR E27 Section 4.1, with additional capabilities in Section 4.2 for systems communicating with untrusted networks. The supplier shall follow a Secure Development Lifecycle (SDLC) covering requirements analysis, design, implementation, verification, release, maintenance, and end-of-life phases, with documented evidence for each phase. Mandatory compliance evidence includes the Type Approval Certificate, Secure Development Lifecycle (SDLC) document, security capability test procedures and results, SBOM (Software Bill of Materials), hardware and software inventory, physical and logical topology diagrams, security configuration guidelines, default configuration documentation, patch management and security update processes, recovery procedures with defined RTO, safe state definition, and restart time declaration. Equipment type approval by IACS member classification societies shall verify conformance with UR E27 requirements at the product level prior to shipboard installation."],
     ["IACS E27","E27-25","Product Security Documentation","IACS UR E27 (Rev.1 Sep 2023), derived from IEC 62443-3-3, requires security documentation, sbom, and update procedures delivered with each cbs. This security capability shall be implemented by equipment manufacturers and system integrators for all Computer-Based Systems (CBS) within the scope of UR E26 on vessels contracted for construction on or after 1 July 2024. The CBS supplier shall demonstrate conformance through design documentation, security capability testing, and type approval certification. Each CBS shall meet the 30 core security capabilities defined in UR E27 Section 4.1, with additional capabilities in Section 4.2 for systems communicating with untrusted networks. The supplier shall follow a Secure Development Lifecycle (SDLC) covering requirements analysis, design, implementation, verification, release, maintenance, and end-of-life phases, with documented evidence for each phase. Mandatory compliance evidence includes the Type Approval Certificate, Secure Development Lifecycle (SDLC) document, security capability test procedures and results, SBOM (Software Bill of Materials), hardware and software inventory, physical and logical topology diagrams, security configuration guidelines, default configuration documentation, patch management and security update processes, recovery procedures with defined RTO, safe state definition, and restart time declaration. Equipment type approval by IACS member classification societies shall verify conformance with UR E27 requirements at the product level prior to shipboard installation."],
   ];
-  const createdControls = await Promise.all(
-    controlDefs.map(([fwName, ref, theme, description]) =>
-      prisma.control.create({ data: { frameworkId: f[fwName], ref, theme, description } })
-    )
-  );
+  const createdControls: { id: string; frameworkId: string; ref: string }[] = [];
+  for (const [fwName, ref, theme, description] of controlDefs) {
+    const found = await prisma.control.findFirst({
+      where: { frameworkId: f[fwName], ref },
+    });
+    createdControls.push(
+      found ?? (await prisma.control.create({ data: { frameworkId: f[fwName], ref, theme, description } }))
+    );
+  }
   const ctrlRefMap = new Map(createdControls.map((c) => [`${c.frameworkId}:${c.ref}`, c.id]));
   function findControl(fwName: string, ref: string): string {
     const id = ctrlRefMap.get(`${f[fwName]}:${ref}`);
@@ -892,9 +898,11 @@ async function main() {
     { key: "email.encryption_tls", label: "Email Encryption TLS", description: "Email transport encryption (TLS) enforcement status", category: "Email Security", domain: "Email Security" },
     { key: "ot.firmware_management", label: "OT Firmware Management", description: "OT/IoT firmware version management and patching", category: "OT Security", domain: "OT/IoT Security" },
   ];
-  const dataItems = await Promise.all(
-    dataItemDefs.map((d) => prisma.dataItem.create({ data: d }))
-  );
+  const dataItems: { key: string; id: string }[] = [];
+  for (const d of dataItemDefs) {
+    const found = await prisma.dataItem.findFirst({ where: { key: d.key } });
+    dataItems.push(found ?? (await prisma.dataItem.create({ data: d })));
+  }
   const di = Object.fromEntries(dataItems.map((item) => [item.key, item.id]));
 
   type MDef = [string, string, string, string, string, string, string, string, string, string, boolean];

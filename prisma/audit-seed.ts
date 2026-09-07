@@ -10,15 +10,16 @@ const ALL_SCOPES = [...GOOGLE_WORKSPACE_SCOPES, ...MS_GRAPH_SCOPES];
 export async function seedControlAudits(prisma: PrismaClient): Promise<void> {
   console.log("Starting control audit seed...");
 
-  console.log("Deleting existing ControlAudit records...");
-  await prisma.controlAudit.deleteMany();
-
   const controls = await prisma.control.findMany({
     include: { framework: { select: { name: true } } },
   });
   console.log("Found " + controls.length + " controls for audit seeding.");
 
-  let updated = 0;
+  const existing = await prisma.controlAudit.findMany({ select: { controlId: true } });
+  const existingIds = new Set(existing.map((e) => e.controlId));
+
+  let created = 0;
+  let kept = 0;
   for (const control of controls) {
     const audit = buildAuditGuide(control.theme, control.framework.name);
     await prisma.control.update({
@@ -29,16 +30,37 @@ export async function seedControlAudits(prisma: PrismaClient): Promise<void> {
         auditTestRef: audit.auditTestRef,
       },
     });
-    await prisma.controlAudit.create({
-      data: {
-        controlId: control.id,
-        status: "notstarted",
-      },
-    });
-    updated += 1;
+    if (!existingIds.has(control.id)) {
+      await prisma.controlAudit.create({
+        data: {
+          controlId: control.id,
+          status: demoStatusFor(control.ref, control.theme),
+        },
+      });
+      created += 1;
+    } else {
+      kept += 1;
+    }
   }
 
-  console.log("Seeded audit guidance + default audits for " + updated + " controls.");
+  console.log(
+    "Created " + created + " demo audits, kept existing " + kept + " audits. Guidance updated for " +
+      controls.length + " controls."
+  );
+}
+
+export function demoStatusFor(
+  ref: string,
+  theme: string
+): "compliant" | "partial" | "noncompliant" | "notstarted" {
+  let h = 0;
+  const seed = ref + ":" + theme;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  const r = h % 100;
+  if (r < 45) return "compliant";
+  if (r < 70) return "partial";
+  if (r < 85) return "noncompliant";
+  return "notstarted";
 }
 
 export function matchAuditArea(theme: string): { area: string; keywords: number } {
