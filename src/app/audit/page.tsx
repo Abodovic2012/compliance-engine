@@ -398,7 +398,10 @@ export default function AuditPage() {
                       <p className="text-xs text-slate-600">{c.description}</p>
                       {c.scopeRefs.length > 0 && (
                         <div className="bg-slate-50 rounded-lg p-3 text-xs text-slate-600">
-                          <div className="font-medium text-slate-700 mb-1">In-scope permissions</div>
+                          <div className="font-medium text-slate-700 mb-1">Audit reference</div>
+                          <p className="text-[10px] text-slate-400 mb-1">
+                            Informational only - not used in scoring.
+                          </p>
                           <div className="flex flex-wrap gap-1.5 mt-1">
                             {c.scopeRefs.map((s) => (
                               <span
