@@ -68,7 +68,7 @@ compliance-app/
 |  |  |- logger.ts              # Async JSON logger
 |  |  |- policy-taxonomy.ts     # 18 sub-policies, keyword classification
 |  |  |- audit-scoring.ts       # Audit scorecard engine: % per framework, weak points, overall (compliant/partial/noncompliant/notstarted)
-|  |  |- audit-coverage.ts      # Per-framework breakdown: mapping coverage %, categories, weak controls, risk dist
+|  |  |- audit-coverage.ts      # Per-framework breakdown: mapping coverage %, categories, weak controls, risk dist, audit scopes + OAuth scopes
 |  |  |- audit-report.ts        # Control row -> scorecard/breakdown input mapping + DB pulls
 |  |- components/
 |  |  |- print-button.tsx       # Client-side print button
@@ -77,7 +77,7 @@ compliance-app/
 |  |  |- layout.tsx             # Root layout + sidebar nav
 |  |  |- nav.tsx                # Navigation component
 |  |  |- audit/
-|  |  |  |- page.tsx            # Audit assessment: By control (filter by framework/area/theme/status, scope-name chips) + Framework breakdown tab
+|  |  |  |- page.tsx            # Audit assessment: By control (filter by framework/area/theme/status, scope-name chips) + Framework breakdown tab (per-framework audit + OAuth scopes)
 |  |  |- assessment/
 |  |  |  |- page.tsx            # Scorecard: overall donut, per-framework %, weak points, expandable breakdown
 |  |  |- globals.css            # Tailwind + custom styles

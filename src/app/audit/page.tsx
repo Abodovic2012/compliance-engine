@@ -72,6 +72,12 @@ interface FrameworkBreakdown {
     evidenceMissing: boolean;
   }[];
   riskDistribution: Record<string, number>;
+  auditScopes: string[];
+  oauthScopes: {
+    provider: string;
+    scopeId: string;
+    displayName: string;
+  }[];
 }
 
 interface Report {
@@ -542,6 +548,35 @@ function BreakdownView({ breakdown }: { breakdown: Report["breakdown"] }) {
 
               {fwExpanded[fw.frameworkId] && (
                 <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-4">
+                  <div className="grid gap-4 lg:grid-cols-2 mb-6">
+                    <div className="bg-white rounded-lg border border-slate-200 p-3">
+                      <h3 className="text-sm font-semibold text-slate-700 mb-2">Audit scopes</h3>
+                      {fw.auditScopes.length === 0 ? (
+                        <div className="text-xs text-slate-400">No audit scopes.</div>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5">
+                          {fw.auditScopes.map((s) => (
+                            <span
+                              key={s}
+                              className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-medium"
+                            >
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="bg-white rounded-lg border border-slate-200 p-3">
+                      <h3 className="text-sm font-semibold text-slate-700 mb-2">
+                        OAuth scopes (permissions) · {fw.oauthScopes.length}
+                      </h3>
+                      {fw.oauthScopes.length === 0 ? (
+                        <div className="text-xs text-slate-400">No OAuth scope references.</div>
+                      ) : (
+                        <ScopeGroupedScopes scopes={fw.oauthScopes} />
+                      )}
+                    </div>
+                  </div>
                   <div className="grid gap-6 lg:grid-cols-2">
                     <div>
                       <h3 className="text-sm font-semibold text-slate-700 mb-2">Categories</h3>
@@ -592,6 +627,43 @@ function BreakdownView({ breakdown }: { breakdown: Report["breakdown"] }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function ScopeGroupedScopes({
+  scopes,
+}: {
+  scopes: { provider: string; scopeId: string; displayName: string }[];
+}) {
+  const groups = new Map<string, { scopeId: string; displayName: string }[]>();
+  for (const s of scopes) {
+    const list = groups.get(s.provider) ?? [];
+    list.push({ scopeId: s.scopeId, displayName: s.displayName });
+    groups.set(s.provider, list);
+  }
+  const providerLabel = (p: string) =>
+    p === "google" ? "Google Workspace" : p === "microsoft" ? "Microsoft 365 / Graph" : p;
+  return (
+    <div className="space-y-2">
+      {[...groups.entries()].map(([provider, list]) => (
+        <div key={provider}>
+          <div className="text-[10px] font-medium text-slate-400 mb-1">
+            {providerLabel(provider)} ({list.length})
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {list.map((s) => (
+              <span
+                key={s.scopeId}
+                title={s.scopeId}
+                className="px-2 py-0.5 rounded-md bg-white border border-slate-200 font-mono text-[10px]"
+              >
+                {s.displayName}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -95,6 +95,9 @@ export function toBreakdownInput(records: AuditControlRecord[]): Parameters<type
     framework: r.framework,
     audit: r.audit,
     mappings: r.mappings,
+    auditArea: r.auditArea,
+    auditScope: r.auditScope,
+    scopeRefs: r.scopeRefs,
   }));
 }
 

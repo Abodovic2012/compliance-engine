@@ -7,6 +7,9 @@ export interface ControlBreakdownInput {
   framework: { name: string; version: string; region: string };
   audit: { status: string; evidence: string | null; notes: string | null } | null;
   mappings: { severity: string; findingType: string; dataItem: { name: string } }[];
+  auditArea: string | null;
+  auditScope: string | null;
+  scopeRefs: { provider: string; scopeId: string; displayName: string }[];
 }
 
 export interface CategoryBreakdown {
@@ -55,6 +58,8 @@ export interface FrameworkAuditBreakdown {
   categories: CategoryBreakdown[];
   topWeakControls: TopWeakControl[];
   riskDistribution: RiskDistribution;
+  auditScopes: string[];
+  oauthScopes: { provider: string; scopeId: string; displayName: string }[];
 }
 
 export interface AuditBreakdownReport {
@@ -95,11 +100,18 @@ export function buildAuditBreakdown(controls: ControlBreakdownInput[]): AuditBre
     const dataItems = new Set<string>();
     const categories = new Map<string, CategoryBreakdown>();
     const riskDist: RiskDistribution = { critical: 0, high: 0, medium: 0, low: 0 };
+    const auditScopes = new Set<string>();
+    const oauthMap = new Map<string, { provider: string; scopeId: string; displayName: string }>();
 
     for (const c of fwControls) {
       if (c.mappings.length > 0) withMappings += 1;
       totalMappings += c.mappings.length;
       for (const m of c.mappings) dataItems.add(m.dataItem.name);
+
+      if (c.auditScope) auditScopes.add(c.auditScope);
+      for (const s of c.scopeRefs) {
+        oauthMap.set(s.scopeId, s);
+      }
 
       const status = c.audit?.status ?? "notstarted";
       const cat = categories.get(c.theme) ?? {
@@ -199,6 +211,10 @@ export function buildAuditBreakdown(controls: ControlBreakdownInput[]): AuditBre
       ),
       topWeakControls,
       riskDistribution: riskDist,
+      auditScopes: [...auditScopes].sort(),
+      oauthScopes: [...oauthMap.values()].sort((a, b) =>
+        a.provider.localeCompare(b.provider) || a.displayName.localeCompare(b.displayName),
+      ),
     });
   }
 
