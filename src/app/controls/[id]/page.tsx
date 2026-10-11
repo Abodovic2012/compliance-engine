@@ -46,6 +46,24 @@ export default async function ControlDetailPage(props: { params: Promise<{ id: s
         <p className="text-sm text-slate-600 leading-relaxed">{control.description}</p>
       </div>
 
+      {/* Guidance */}
+      {(control.scope || control.remediation) && (
+        <div className="grid gap-4 md:grid-cols-2 mb-6">
+          {control.scope && (
+            <div className="bg-blue-50/60 rounded-xl border border-blue-100 p-5">
+              <h2 className="font-semibold text-sm mb-2 text-slate-800">Scope</h2>
+              <p className="text-sm text-slate-600 leading-relaxed">{control.scope}</p>
+            </div>
+          )}
+          {control.remediation && (
+            <div className="bg-amber-50/60 rounded-xl border border-amber-100 p-5">
+              <h2 className="font-semibold text-sm mb-2 text-slate-800">Remediation</h2>
+              <p className="text-sm text-slate-600 leading-relaxed">{control.remediation}</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Stats row */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">

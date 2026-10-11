@@ -28,6 +28,8 @@ export async function seedControlAudits(prisma: PrismaClient): Promise<void> {
         auditProcedure: audit.auditProcedure,
         evidenceRequired: audit.evidenceRequired,
         auditTestRef: audit.auditTestRef,
+        scope: audit.scope,
+        remediation: audit.remediation,
       },
     });
     if (!existingIds.has(control.id)) {
@@ -130,7 +132,7 @@ export function describeAuditScope(area: string, providers: string[]): string {
 export function buildAuditGuide(
   theme: string,
   frameworkName: string,
-): { auditProcedure: string; evidenceRequired: string; auditTestRef: string } {
+): { auditProcedure: string; evidenceRequired: string; auditTestRef: string; scope: string; remediation: string } {
   const t = theme.toLowerCase();
 
   if (/\baccess|authentication|authorization|identity|privilege|mfa|iam\b/.test(t)) {
@@ -140,6 +142,10 @@ export function buildAuditGuide(
       evidenceRequired:
         "Access control policy; user access review records; user/role permission matrix; MFA enforcement screenshot; privileged access management report.",
       auditTestRef: "Access review register + IAM audit log",
+      scope:
+        "We need to verify that all user and admin accounts have access controls enforced and that authentication (including Multi-Factor Authentication where required) is active and actively enforced. Confirm role-based access and least privilege are applied. To pass, 100% of active accounts, especially privileged accounts, must enforce MFA without exceptions and follow approved role assignments.",
+      remediation:
+        "Enforce conditional access policies in Microsoft 365, Google Workspace, or your identity provider to make MFA mandatory for all users and admins; remove or correct any accounts flagged as non-compliant, revoke excessive privileges, and re-run the access review to confirm 100% coverage.",
     };
   }
   if (/\bencrypt|cryptograph|key|tls|data at rest|data in transit\b/.test(t)) {
@@ -149,6 +155,10 @@ export function buildAuditGuide(
       evidenceRequired:
         "Encryption policy; key management procedure + key inventory; TLS/certificate inventory; data classification table showing encrypted assets.",
       auditTestRef: "Key management log + certificate inventory",
+      scope:
+        "We need to verify that sensitive data is encrypted at rest and in transit using approved algorithms and current keys. Review key/certificate management and TLS configuration. To pass, 100% of in-scope data stores and endpoints must use approved encryption with valid, non-expired keys and certificates.",
+      remediation:
+        "Enable encryption for all in-scope data stores, rotate or renew expired keys and certificates, enforce TLS 1.2 or higher on all endpoints, and update the key inventory to reflect the changes.",
     };
   }
   if (/\bbackup|availability|continuity|disaster|recovery|resilience\b/.test(t)) {
@@ -158,6 +168,10 @@ export function buildAuditGuide(
       evidenceRequired:
         "Backup policy + schedule; restore test results; BCP/DRP documents; continuity exercise minutes; RTO/RPO metrics.",
       auditTestRef: "BC/DR test register + backup monitoring",
+      scope:
+        "We need to verify that backups run per schedule and that business continuity and disaster recovery plans are tested. Confirm RTO/RPO targets are met. To pass, 100% of in-scope systems must have a successful recent restore test and a documented, exercised continuity plan.",
+      remediation:
+        "Fix failed or missing backups, restore RTO/RPO to target, schedule and evidence a restore test, and update the BC/DR plan for any gaps identified.",
     };
   }
   if (/\bincident|response|handling|detection|event|monitoring|alert\b/.test(t)) {
@@ -167,6 +181,10 @@ export function buildAuditGuide(
       evidenceRequired:
         "Incident response plan; monitoring/SIEM configuration; sample incident tickets; alert-to-close metrics; post-incident review minutes.",
       auditTestRef: "Incident register + monitoring dashboard",
+      scope:
+        "We need to verify that incident detection and response is operating. Review monitoring coverage, alerting, the incident response plan, and confirm incidents were handled and closed. To pass, 100% of in-scope systems must be monitored and all high-severity incidents must have documented response and closure within SLA.",
+      remediation:
+        "Close monitoring gaps, tune alerting, remediate open incidents within SLA, and update the incident response plan and post-incident actions to prevent recurrence.",
     };
   }
   if (/\baudit|log|record|logging|retention|monitor\b/.test(t)) {
@@ -176,6 +194,10 @@ export function buildAuditGuide(
       evidenceRequired:
         "Logging policy + enabled-log inventory; retention schedule; audit log review evidence; log integrity/access-control configuration.",
       auditTestRef: "Audit log review register + retention schedule",
+      scope:
+        "We need to verify that audit logging is enabled and protected on key systems and that logs are retained per policy and reviewable. To pass, 100% of in-scope systems must emit protected logs retained for the required period, with evidence of periodic review.",
+      remediation:
+        "Enable logging on systems missing coverage, extend retention to the required period, restrict access to log stores, and start and evidence regular log reviews.",
     };
   }
   if (/\brisk|assess|treatment|accept|register\b/.test(t)) {
@@ -185,6 +207,10 @@ export function buildAuditGuide(
       evidenceRequired:
         "Risk management policy; current risk register; risk assessment reports; risk treatment/acceptance records; review meeting minutes.",
       auditTestRef: "Risk register + risk review cycle",
+      scope:
+        "We need to verify that the risk management process operates. Review the risk register, assessments, and treatment decisions. To pass, 100% of identified risks must be assessed, have an owner and a documented treatment decision, and be reviewed on the defined cycle.",
+      remediation:
+        "Assess unassessed risks, assign owners and treatment plans, record acceptance decisions, and complete the overdue risk reviews.",
     };
   }
   if (/\btraining|awareness|competence|personnel|human|hr\b/.test(t)) {
@@ -194,6 +220,10 @@ export function buildAuditGuide(
       evidenceRequired:
         "Security training policy; training completion reports; awareness campaign evidence; role-based competence assessments.",
       auditTestRef: "Training completion register + policy acknowledgement",
+      scope:
+        "We need to verify that security awareness and competence programs are effective. Review the curriculum, completion records, and role-based competence. To pass, 100% of in-scope personnel must complete required training and acknowledge policies within the defined period.",
+      remediation:
+        "Assign and track overdue training, deliver awareness campaigns, assess role-based competence, and record policy acknowledgements for all personnel.",
     };
   }
   if (/\bchange|config|baseline|hardening|patch|vulnerab|weakne\b/.test(t)) {
@@ -203,6 +233,10 @@ export function buildAuditGuide(
       evidenceRequired:
         "Change management policy + change records; configuration baseline docs; vulnerability scan reports; patch status report; remediation plan.",
       auditTestRef: "Change register + vulnerability scan history",
+      scope:
+        "We need to verify that change management, secure configuration, and vulnerability management are operating. Review change approvals, baselines, patch status, and scans. To pass, 100% of in-scope systems must meet the approved baseline with critical vulnerabilities patched within SLA.",
+      remediation:
+        "Apply pending patches, remediate critical and high findings, restore systems to the approved baseline, and enforce change approval for all modifications.",
     };
   }
   if (/\bsupply|third.party|vendor|outsourc\b/.test(t)) {
@@ -212,6 +246,10 @@ export function buildAuditGuide(
       evidenceRequired:
         "Third-party risk policy; vendor inventory; due-diligence assessments; contracts with security clauses; vendor monitoring evidence.",
       auditTestRef: "Vendor risk register + contracts list",
+      scope:
+        "We need to verify that supply chain and third-party risk is managed. Review the vendor inventory, due diligence, contracts, and monitoring. To pass, 100% of active vendors must have a completed risk assessment, security clauses in contract, and current monitoring.",
+      remediation:
+        "Complete overdue vendor assessments, add missing security clauses to contracts, and establish ongoing monitoring for flagged suppliers.",
     };
   }
   if (/\bphysical|facilit|premis|on.site\b/.test(t)) {
@@ -221,6 +259,10 @@ export function buildAuditGuide(
       evidenceRequired:
         "Physical security policy; access control records; visitor logs; CCTV/environmental system records; physical security test results.",
       auditTestRef: "Physical access register + facility inspections",
+      scope:
+        "We need to verify the physical security of facilities and assets. Review physical access controls, visitor management, and environmental protections. To pass, 100% of in-scope facilities must enforce access control with accurate records and tested protections.",
+      remediation:
+        "Remediate unsecured access points, update visitor and access logs, repair environmental controls, and re-test physical protections.",
     };
   }
   if (/\bnetwork|firewall|segment|perimeter|dns|endpoint\b/.test(t)) {
@@ -230,6 +272,10 @@ export function buildAuditGuide(
       evidenceRequired:
         "Network security policy; firewall/rule inventory; segmentation diagram; endpoint protection coverage report; anomaly detection evidence.",
       auditTestRef: "Network device audit + endpoint report",
+      scope:
+        "We need to verify network and endpoint security. Review firewall rules, segmentation, endpoint protection coverage, and traffic monitoring. To pass, 100% of in-scope hosts must run approved endpoint protection and follow approved firewall and segmentation rules.",
+      remediation:
+        "Close firewall and segmentation gaps, deploy endpoint protection to uncovered hosts, remove risky rules, and enable anomaly monitoring.",
     };
   }
   return {
@@ -238,6 +284,10 @@ export function buildAuditGuide(
     evidenceRequired:
       "Control implementation records; supporting policy/procedure; sample transactional evidence; management review confirmation.",
     auditTestRef: "Control evidence file + implementation records",
+    scope:
+      "We need to verify that this control is implemented and operating effectively in line with " + frameworkName + ". Confirm the supporting records exist and are retained. To pass, the control must be fully implemented with current, reviewable evidence covering the full assessment period.",
+    remediation:
+      "Implement the missing control elements, produce and retain the required evidence, assign a control owner, and confirm effectiveness at the next review.",
   };
 }
 

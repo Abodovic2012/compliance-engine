@@ -40,6 +40,8 @@ model Control {
   auditTestRef     String?
   auditArea        String?
   auditScope       String?
+  scope            String?
+  remediation      String?
   mappings         Mapping[]
   scopeRefs        ControlScopeRef[]
   audit            ControlAudit?

@@ -59,7 +59,7 @@ compliance-app/
 |- prisma/
 |  |- schema.prisma          # DataItem, Framework, Control (+audit fields), Mapping, ControlAudit, ControlScopeRef
 |  |- seed.ts                # 15 frameworks, 667 controls, 134 items, 922 mappings (+ calls seedControlAudits + seedControlScopeRefs)
-|  |- audit-seed.ts          # Per-control audit guidance + idempotent audit seeding (demo baseline; preserves saved statuses) + scope ref mapping (5,519 refs)
+|  |- audit-seed.ts          # Per-control audit guidance (procedure, evidence, scope + pass criteria, remediation) + idempotent audit seeding (demo baseline; preserves saved statuses) + scope ref mapping (5,519 refs)
 |  |- scope-catalog.ts       # Permission-name catalog (Google Workspace + Microsoft Graph) + category/theme keyword map
 |  |- dev.db                 # SQLite database (seeded)
 |- src/
@@ -122,7 +122,8 @@ compliance-app/
 DataItem (id, key, label, description, category, domain)
 Framework (id, name, version, region)
 Control (id, frameworkId, ref, theme, description, auditProcedure,
-         evidenceRequired, auditTestRef, auditArea, auditScope)
+         evidenceRequired, auditTestRef, auditArea, auditScope,
+         scope, remediation)
 ControlScopeRef (id, controlId, provider, scopeId, displayName)
 Mapping (id, dataItemId, controlId, justification, severity,
          slaThreshold, findingType, remediation, evidenceRequired,
@@ -216,7 +217,8 @@ ControlAudit (id, controlId (unique), status [compliant/partial/noncompliant/not
 | **M12** | OAuth Scopes Removed | Scope/ScopeMapping/ScopeAssessment models, seeds, APIs, and pages fully removed |
 | **M13** | Audit Scopes Restored | Permission names per control as reference context + audit area/scope fields + area filter (5,519 refs) |
 | **M14** | Non-destructive rebuilds | Idempotent seed + demo baseline; `npm run build` no longer wipes saved audit statuses |
-| **M15** | Auth + Multi-tenant | Phase 2 |
+| **M15** | Control Scope + Remediation | Per-control verification scope with explicit pass criteria + remediation steps, generated deterministically and shown on `/audit` and `/controls/[id]` |
+| **M16** | Auth + Multi-tenant | Phase 2 |
 
 ---
 

@@ -15,6 +15,8 @@ interface AuditControl {
   auditProcedure: string | null;
   evidenceRequired: string | null;
   auditTestRef: string | null;
+  scope: string | null;
+  remediation: string | null;
   framework: { id: string; name: string; version: string; region: string };
   audit: { status: string; evidence: string | null; notes: string | null } | null;
   mappingsCount: number;
@@ -230,7 +232,7 @@ export default function AuditPage() {
     if (statusFilter !== "all" && status !== statusFilter) return false;
     if (
       search &&
-      ![c.ref, c.theme, c.description, c.auditArea ?? "", c.auditScope ?? ""].some((f) =>
+      ![c.ref, c.theme, c.description, c.auditArea ?? "", c.auditScope ?? "", c.scope ?? "", c.remediation ?? ""].some((f) =>
         f.toLowerCase().includes(search.toLowerCase())
       )
     )
@@ -402,6 +404,18 @@ export default function AuditPage() {
                   {expanded[c.id] && (
                     <div className="border-t border-slate-100 px-4 py-3 space-y-3">
                       <p className="text-xs text-slate-600">{c.description}</p>
+                      {c.scope && (
+                        <div className="bg-blue-50/60 rounded-lg p-3 text-xs text-slate-600">
+                          <div className="font-medium text-slate-700 mb-1">Scope</div>
+                          <p>{c.scope}</p>
+                        </div>
+                      )}
+                      {c.remediation && (
+                        <div className="bg-amber-50/60 rounded-lg p-3 text-xs text-slate-600">
+                          <div className="font-medium text-slate-700 mb-1">Remediation</div>
+                          <p>{c.remediation}</p>
+                        </div>
+                      )}
                       {c.scopeRefs.length > 0 && (
                         <div className="bg-slate-50 rounded-lg p-3 text-xs text-slate-600">
                           <div className="font-medium text-slate-700 mb-1">Audit reference</div>

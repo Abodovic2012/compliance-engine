@@ -14,6 +14,8 @@ export interface AuditControlRecord {
   auditProcedure: string | null;
   evidenceRequired: string | null;
   auditTestRef: string | null;
+  scope: string | null;
+  remediation: string | null;
   framework: { id: string; name: string; version: string; region: string };
   audit: { status: string; evidence: string | null; notes: string | null } | null;
   mappingsCount: number;
@@ -56,6 +58,8 @@ export async function fetchAuditControls(): Promise<AuditControlRecord[]> {
     auditProcedure: c.auditProcedure,
     evidenceRequired: c.evidenceRequired,
     auditTestRef: c.auditTestRef,
+    scope: c.scope,
+    remediation: c.remediation,
     framework: c.framework,
     audit: c.audit
       ? { status: c.audit.status, evidence: c.audit.evidence, notes: c.audit.notes }
